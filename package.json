@@ -1,0 +1,39 @@
+{
+  "name": "oidc-connector",
+  "version": "1.0.0-0",
+  "description": "",
+  "keywords": [
+    "keycloak",
+    "oidc",
+    "oidc-client"
+  ],
+  "license": "Apache-2.0",
+  "type": "module",
+  "main": "",
+  "scripts": {
+    "coverage": "c8 --clean -r text -r html npm t",
+    "lint": "eslint --fix \"**/*.js\"",
+    "test": "mocha"
+  },
+  "dependencies": {
+    "crypto-hash": "^1.3.0"
+  },
+  "devDependencies": {
+    "c8": "^7.3.5",
+    "debug": "^4.2.0",
+    "eslint": "^6.8.0",
+    "eslint-config-standard": "^14.1.1",
+    "eslint-plugin-import": "^2.20.2",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-promise": "^4.2.1",
+    "eslint-plugin-standard": "^4.0.1",
+    "jsdom-global": "^3.0.2",
+    "mocha": "^8.2.0",
+    "node-fetch": "^2.6.0",
+    "nyc": "^15.1.0",
+    "rimraf": "^3.0.2",
+    "shelljs": "^0.8.4",
+    "whatwg-fetch": "^3.4.1"
+  },
+  "publishConfig": {}
+}
