@@ -13,14 +13,6 @@ export class EventEmitter {
     return this
   }
 
-  once (eventName, listener) {
-    this._getMap(eventName).set(listener, (...args) => {
-      this.off(eventName, listener)
-      listener(...args)
-    })
-    return this
-  }
-
   off (eventName, listener) {
     this._getMap(eventName).delete(listener)
     return this

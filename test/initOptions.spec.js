@@ -4,35 +4,20 @@ import debug from 'debug'
 
 const log = debug('test')
 
+const testLog = (_log) => {
+  assert.strictEqual(typeof _log, 'object')
+  assert.strictEqual(typeof _log.error, 'function')
+  assert.strictEqual(typeof _log.info, 'function')
+  assert.strictEqual(_log.error(), undefined)
+}
+
 describe('utils/initOptions', function () {
   it('shall apply default options', function () {
-    const opts = initOptions()
+    const { log: _log, ...opts } = initOptions()
     log(opts)
-    assert.deepStrictEqual(opts, {
-      useNonce: true,
-      statusIframe: true,
-      statusIframeInterval: 5,
-      responseMode: 'fragment',
-      responseType: 'code',
-      flow: 'standard',
-      prompt: 'none',
-      minValidity: 15
-    })
-  })
 
-  it('shall fallback to default options', function () {
-    const opts = initOptions({
-      useNonce: '##',
-      statusIframe: '##',
-      statusIframeInterval: '##',
-      responseMode: '##',
-      responseType: '##',
-      flow: '##',
-      prompt: '##',
-      minValidity: '##',
-      foo: 'bar'
-    })
-    log(opts)
+    testLog(_log)
+
     assert.deepStrictEqual(opts, {
       useNonce: true,
       statusIframe: true,
@@ -42,6 +27,39 @@ describe('utils/initOptions', function () {
       flow: 'standard',
       prompt: 'none',
       minValidity: 15,
+      expiryInterval: 5,
+      loginRequired: false
+    })
+  })
+
+  it('shall fallback to default options', function () {
+    const { log: _log, ...opts } = initOptions({
+      useNonce: '##',
+      statusIframe: '##',
+      statusIframeInterval: '##',
+      responseMode: '##',
+      responseType: '##',
+      flow: '##',
+      prompt: '##',
+      minValidity: '##',
+      foo: 'bar',
+      log: '##'
+    })
+    log(opts)
+
+    testLog(_log)
+
+    assert.deepStrictEqual(opts, {
+      useNonce: true,
+      statusIframe: true,
+      statusIframeInterval: 5,
+      responseMode: 'fragment',
+      responseType: 'code',
+      flow: 'standard',
+      prompt: 'none',
+      minValidity: 15,
+      expiryInterval: 5,
+      loginRequired: false,
       foo: 'bar'
     })
   })

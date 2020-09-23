@@ -27,12 +27,16 @@
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-promise": "^4.2.1",
     "eslint-plugin-standard": "^4.0.1",
+    "express": "^4.17.1",
+    "jsdom": "^16.4.0",
     "jsdom-global": "^3.0.2",
+    "jsrsasign": "^10.0.4",
     "mocha": "^8.2.0",
     "node-fetch": "^2.6.0",
     "nyc": "^15.1.0",
     "rimraf": "^3.0.2",
     "shelljs": "^0.8.4",
+    "supertest": "^6.0.0",
     "whatwg-fetch": "^3.4.1"
   },
   "publishConfig": {}

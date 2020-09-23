@@ -27,7 +27,7 @@ export class Adapter {
     window.location.replace(url)
   }
 
-  async accountManagement () {
+  async account () {
     var url = this.endpoints.createAccountUrl()
     if (url) {
       window.location.href = url

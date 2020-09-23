@@ -1,40 +1,49 @@
 import { CallbackStorage } from './storage.js'
 
-function parseCallbackParams (paramsString, supportedParams) {
-  const p = paramsString.split('&')
-  const result = {
-    paramsString: '',
-    oauthParams: {}
-  }
-  for (let i = 0; i < p.length; i++) {
-    const split = p[i].indexOf('=')
-    const key = p[i].slice(0, split)
-    if (supportedParams.indexOf(key) !== -1) {
-      result.oauthParams[key] = p[i].slice(split + 1)
-    } else {
-      if (result.paramsString !== '') {
-        result.paramsString += '&'
-      }
-      result.paramsString += p[i]
-    }
-  }
-  return result
+import {
+  // responseMode
+  FRAGMENT,
+  QUERY,
+  // flow
+  STANDARD,
+  IMPLICIT,
+  HYBRID,
+  // params
+  CODE,
+  STATE,
+  SESSION_STATE,
+  RESPONSE_MODE,
+  ACCESS_TOKEN,
+  ID_TOKEN,
+  EXPIRES_IN,
+  KC_ACTION_STATUS,
+  TOKEN_TYPE,
+  ERROR,
+  ERROR_DESCRIPTION,
+  ERROR_URI
+} from '../constants.js'
+
+const PARAMS = {
+  [STANDARD]: [CODE, STATE, SESSION_STATE, KC_ACTION_STATUS],
+  [IMPLICIT]: [ACCESS_TOKEN, TOKEN_TYPE, ID_TOKEN, STATE, SESSION_STATE, EXPIRES_IN, KC_ACTION_STATUS],
+  [HYBRID]: [ACCESS_TOKEN, ID_TOKEN, CODE, STATE, SESSION_STATE, KC_ACTION_STATUS]
 }
 
 export class Callback {
   constructor (options) {
-    const { flow, responseMode } = options || {}
-    this._flow = flow
-    this._responseMode = responseMode
+    const { flow, responseMode, log } = options || {}
+    this._flow = flow || STANDARD
+    this._responseMode = responseMode || FRAGMENT
     this._store = new CallbackStorage()
+    this.log = log
   }
 
   store (state) {
     this._store.add(state)
   }
 
-  parseCallback (url) {
-    const oauth = this.parseCallbackUrl(url)
+  parse (url) {
+    const oauth = this._parseUrl(url)
     if (!oauth) {
       return
     }
@@ -52,59 +61,45 @@ export class Callback {
     return oauth
   }
 
-  parseCallbackUrl (url) {
-    let supportedParams
-    switch (this._flow) {
-      case 'standard':
-        supportedParams = ['code', 'state', 'session_state', 'kc_action_status']
-        break
-      case 'implicit':
-        supportedParams = ['access_token', 'token_type', 'id_token', 'state', 'session_state', 'expires_in', 'kc_action_status']
-        break
-      case 'hybrid':
-        supportedParams = ['access_token', 'id_token', 'code', 'state', 'session_state', 'kc_action_status']
-        break
+  _parseUrl (url) {
+    const supportedParams = PARAMS[this._flow] || []
+    supportedParams.push(RESPONSE_MODE)
+    supportedParams.push(ERROR)
+    supportedParams.push(ERROR_DESCRIPTION)
+    supportedParams.push(ERROR_URI)
+
+    let oauth
+    const uri = new URL(url)
+
+    const reduce = (search) => supportedParams.reduce((oauth, param) => {
+      const val = search.get(param)
+      if (val) {
+        search.delete(param)
+        oauth[param] = val
+      }
+      return oauth
+    }, {})
+
+    if (this._responseMode === QUERY) {
+      oauth = reduce(uri.searchParams)
+      oauth.newUrl = uri.toString()
+    } else if (this._responseMode === FRAGMENT) {
+      const search = new URLSearchParams(uri.hash.substring(1))
+      oauth = reduce(search)
+      uri.hash = `#${search.toString()}`
+      oauth.newUrl = uri.toString()
     }
 
-    supportedParams.push('error')
-    supportedParams.push('error_description')
-    supportedParams.push('error_uri')
-
-    const queryIndex = url.indexOf('?')
-    const fragmentIndex = url.indexOf('#')
-
-    let newUrl
-    let parsed
-
-    if (this._responseMode === 'query' && queryIndex !== -1) {
-      newUrl = url.substring(0, queryIndex)
-      parsed = parseCallbackParams(url.substring(queryIndex + 1, fragmentIndex !== -1 ? fragmentIndex : url.length), supportedParams)
-      if (parsed.paramsString !== '') {
-        newUrl += '?' + parsed.paramsString
-      }
-      if (fragmentIndex !== -1) {
-        newUrl += url.substring(fragmentIndex)
-      }
-    } else if (this._responseMode === 'fragment' && fragmentIndex !== -1) {
-      newUrl = url.substring(0, fragmentIndex)
-      parsed = parseCallbackParams(url.substring(fragmentIndex + 1), supportedParams)
-      if (parsed.paramsString !== '') {
-        newUrl += '#' + parsed.paramsString
+    if (oauth) {
+      if ((this._flow === STANDARD || this._flow === HYBRID) &&
+        oauth.state && ((oauth.code || oauth.error))) {
+        return oauth
+      } else if (this._flow === IMPLICIT &&
+        oauth.state && (oauth.access_token || oauth.error)) {
+        return oauth
       }
     }
 
-    if (parsed && parsed.oauthParams) {
-      if (this._flow === 'standard' || this._flow === 'hybrid') {
-        if ((parsed.oauthParams.code || parsed.oauthParams.error) && parsed.oauthParams.state) {
-          parsed.oauthParams.newUrl = newUrl
-          return parsed.oauthParams
-        }
-      } else if (this._flow === 'implicit') {
-        if ((parsed.oauthParams.access_token || parsed.oauthParams.error) && parsed.oauthParams.state) {
-          parsed.oauthParams.newUrl = newUrl
-          return parsed.oauthParams
-        }
-      }
-    }
+    this.log.error('bad params %o for %s flow', oauth, this._flow)
   }
 }

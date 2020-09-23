@@ -110,6 +110,10 @@ class EndpointsBase {
       referrer_uri: redirectUri
     })
   }
+
+  createTokenUrl (query) {
+    return createUrl(this.token(), query)
+  }
 }
 
 export class EndpointsRealm extends EndpointsBase {

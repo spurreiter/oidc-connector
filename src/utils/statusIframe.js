@@ -1,6 +1,5 @@
-import { getOrigin } from './getOrigin.js'
-import { createPromise } from './createPromise.js'
-import { get } from './get.js'
+import { createPromise, debouncePromises } from './createPromise.js'
+import { createIframe } from './createIframe.js'
 
 const ERROR = 'error'
 const CHANGED = 'changed'
@@ -10,29 +9,35 @@ const TITLE = 'oidc-status-iframe'
 
 export class StatusIframe {
   constructor (client) {
+    const { statusIframe, statusIframeInterval } = client.options
     this.client = client
     this.endpoints = client.endpoints
     this.iframe = null
     this.iframeOrigin = null
-    this.callbackList = []
+    this.debounce = debouncePromises()
+    this.enabled = statusIframe
+    this.interval = statusIframeInterval * 1000
   }
 
   origin () {
     const authUrl = this.endpoints.authorize()
     return (authUrl.charAt(0) === '/')
-      ? getOrigin()
+      ? window.location.origin
       : authUrl.substring(0, authUrl.indexOf('/', 8))
   }
 
+  disable () {
+    this.enabled = false
+  }
+
   async setup () {
-    const promise = createPromise()
-    const { statusIframe } = this.client.options
-
-    if (this.iframe || !statusIframe) {
-      return promise.resolve()
+    if (this.iframe || !this.enabled) {
+      return
     }
+    const promise = createPromise()
 
-    const iframe = this.iframe = document.createElement('iframe')
+    const src = this.endpoints.checkSessionIframe()
+    const iframe = this.iframe = createIframe({ src, title: TITLE })
 
     const handleLoad = () => {
       this.iframeOrigin = this.origin()
@@ -40,79 +45,50 @@ export class StatusIframe {
     }
     iframe.addEventListener('load', handleLoad)
 
-    const src = this._endpoints.checkSessionIframe()
-    iframe.setAttribute('src', src)
-    iframe.setAttribute('title', TITLE)
-    iframe.style.display = 'none'
-    document.body.appendChild(iframe)
-
     const messageCallback = (event) => {
-      const { iframe, iframeOrigin, callbackList } = this
-
-      if ((event.origin !== iframeOrigin) ||
-          (iframe.contentWindow !== event.source)) {
+      if ((event.origin !== this.iframeOrigin) ||
+          (this.iframe.contentWindow !== event.source)) {
         return
       }
 
-      if (!(event.data === UNCHANGED ||
-            event.data === CHANGED ||
-            event.data === ERROR)
-      ) {
+      if (![UNCHANGED, CHANGED, ERROR].includes(event.data)) {
         return
       }
 
-      if (event.data !== UNCHANGED) {
-        this.client.clearToken()
-      }
-
-      // copy and empty callbackList
-      const callbacks = callbackList.splice(0, callbackList.length - 1)
-
-      for (let i = callbackList.length - 1; i >= 0; --i) {
-        const promise = callbacks[i]
-        if (event.data === ERROR) {
-          promise.reject(new Error('status iframe error'))
-        } else {
-          promise.resolve(event.data === UNCHANGED)
-        }
+      if (event.data === ERROR) {
+        this.debounce.rejectAll(new Error('status iframe'))
+      } else {
+        this.debounce.resolveAll(event.data === UNCHANGED)
       }
     }
 
     window.addEventListener('message', messageCallback, false)
-
     return promise
   }
 
   schedule () {
-    const { statusIframe, statusIframeInterval } = this.client.options
-
-    if (statusIframe && get(this.client, 'tokens.token')) {
-      setTimeout(() => {
-        this.check().then((unchanged) => {
-          if (unchanged) {
-            this.schedule()
-          }
-        })
-      }, statusIframeInterval * 1000)
+    if (this.enabled && this.client.tokens.authenticated) {
+      setTimeout(async () => {
+        const unchanged = await this.check()
+        if (unchanged) {
+          this.schedule()
+        }
+      }, this.interval)
     }
   }
 
   async check () {
-    const promise = createPromise()
-    const { iframe, iframeOrigin, callbackList } = this
-    const { clientId } = this.options
-    const { sessionState } = get(this.client, 'tokens.tokenParsed.session_state', '')
-
-    if (iframe && iframeOrigin) {
-      const msg = `${clientId} ${sessionState}`
-      callbackList.push(promise)
-      if (callbackList.length === 1) {
-        iframe.contentWindow.postMessage(msg, iframeOrigin)
-      }
-    } else {
-      promise.resolve()
+    if (!this.enabled || !this.iframe || !this.iframeOrigin) {
+      return
     }
+    const promise = createPromise()
+    const { clientId } = this.options
+    const sessionState = this.client.tokens.sessionState()
 
+    const msg = `${clientId} ${sessionState}`
+    if (this.debounce.push(promise)) {
+      this.iframe.contentWindow.postMessage(msg, this.iframeOrigin)
+    }
     return promise
   }
 }
