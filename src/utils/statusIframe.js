@@ -7,20 +7,21 @@ const UNCHANGED = 'unchanged'
 
 const TITLE = 'oidc-status-iframe'
 
+// https://openid.net/specs/openid-connect-session-1_0.html
 export class StatusIframe {
   constructor (client) {
-    const { statusIframe, statusIframeInterval } = client.options
+    const { useStatusIframe, statusIframeInterval, log } = client.options
     this.client = client
-    this.endpoints = client.endpoints
     this.iframe = null
     this.iframeOrigin = null
     this.debounce = debouncePromises()
-    this.enabled = statusIframe
+    this.enabled = useStatusIframe
     this.interval = statusIframeInterval * 1000
+    this.log = log
   }
 
   origin () {
-    const authUrl = this.endpoints.authorize()
+    const authUrl = this.client.endpoints.authorize()
     return (authUrl.charAt(0) === '/')
       ? window.location.origin
       : authUrl.substring(0, authUrl.indexOf('/', 8))
@@ -36,7 +37,13 @@ export class StatusIframe {
     }
     const promise = createPromise()
 
-    const src = this.endpoints.checkSessionIframe()
+    const src = this.client.endpoints.checkSessionIframe()
+    if (!src) {
+      this.log.info('no check_session_iframe')
+      this.disable()
+      promise.resolve()
+      return
+    }
     const iframe = this.iframe = createIframe({ src, title: TITLE })
 
     const handleLoad = () => {
@@ -51,11 +58,14 @@ export class StatusIframe {
         return
       }
 
+      this.log.info('statusIframe "%s"', event.data)
+
       if (![UNCHANGED, CHANGED, ERROR].includes(event.data)) {
         return
       }
 
       if (event.data === ERROR) {
+        this.disable()
         this.debounce.rejectAll(new Error('status iframe'))
       } else {
         this.debounce.resolveAll(event.data === UNCHANGED)
@@ -63,16 +73,21 @@ export class StatusIframe {
     }
 
     window.addEventListener('message', messageCallback, false)
+
     return promise
   }
 
   schedule () {
     if (this.enabled && this.client.tokens.authenticated) {
       setTimeout(async () => {
-        const unchanged = await this.check()
-        if (unchanged) {
-          this.schedule()
-        }
+        try {
+          const unchanged = await this.check()
+          if (unchanged) {
+            this.schedule()
+          } else {
+            this.client._handleLogout()
+          }
+        } catch (e) {}
       }, this.interval)
     }
   }
@@ -82,7 +97,7 @@ export class StatusIframe {
       return
     }
     const promise = createPromise()
-    const { clientId } = this.options
+    const { clientId } = this.client.options
     const sessionState = this.client.tokens.sessionState()
 
     const msg = `${clientId} ${sessionState}`

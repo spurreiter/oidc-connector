@@ -1,7 +1,7 @@
 import assert from 'assert'
 import { clearUrl } from '../src/utils/index.js'
 
-describe('utils/cleanUrl', function () {
+describe('utils/clearUrl', function () {
   it('shall clear a url from doubled slashes', function () {
     assert.strictEqual(
       clearUrl('https://foo.bar//double/the/paths/'),

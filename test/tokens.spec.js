@@ -1,16 +1,20 @@
-import jsdom from 'jsdom-global'
 import assert from 'assert'
+import jsdom from 'jsdom-global'
+import sinon from 'sinon'
+import debug from 'debug'
 import { Tokens } from '../src/tokens.js'
 import { createToken } from './support/createToken.js'
-import debug from 'debug'
 
-const log = {
+const log = debug('test')
+
+const _log = {
   error: debug('oidc:Tokens'),
   info: debug('oidc:Tokens')
 }
 
 describe('tokens', function () {
-  let tokens
+  const latency = 2000
+  const skew = 2
 
   before(function () {
     this.jsdom = jsdom('', {
@@ -22,53 +26,247 @@ describe('tokens', function () {
   after(function () {
     this.jsdom()
   })
-  before(function () {
-    tokens = new Tokens({ log })
+
+  describe('oidc tokens', function () {
+    const nonce = 'nonce1234'
+
+    let tokens
+    before(function () {
+      tokens = new Tokens({ log: _log, useNonce: true })
+    })
+    before(function () { this.clock = sinon.useFakeTimers() })
+    after(function () { this.clock.restore() })
+
+    it('shall authenticate with calcuating the correct time skew value', function () {
+      const exp = 300
+      tokens.startTokenRequest()
+      this.clock.tick(latency)
+      const tokenResponse = {
+        access_token: createToken({
+          exp,
+          nonce,
+          skew,
+          realm_access: { roles: ['read'] },
+          resource_access: { client: { roles: ['read', 'write'] } }
+        }),
+        refresh_token: createToken({ typ: 'Refresh', nonce, skew }),
+        id_token: createToken({ typ: 'ID', nonce, skew }),
+        expires_in: exp
+      }
+      this.clock.tick(latency)
+      tokens.setTokens(tokenResponse)
+      log(tokens)
+      assert.strictEqual(tokens._expiresAt, 302)
+      assert.strictEqual(tokens.authenticated, true)
+    })
+
+    it('shall get tokens', function () {
+      const r = tokens.getTokens()
+      log(r)
+      assert.strictEqual(typeof r.token, 'string')
+      assert.strictEqual(typeof r.tokenParsed, 'object')
+      assert.strictEqual(typeof r.idTokenParsed, 'object')
+      assert.strictEqual(typeof r.refreshTokenParsed, 'object')
+    })
+
+    it('shall load tokens from localStorage', function () {
+      tokens.loadTokens()
+      const r = tokens.getTokens()
+      // console.log(r)
+      assert.strictEqual(typeof r.token, 'string')
+      assert.strictEqual(typeof r.tokenParsed, 'object')
+      assert.strictEqual(typeof r.idTokenParsed, 'object')
+      assert.strictEqual(typeof r.refreshTokenParsed, 'object')
+    })
+
+    it('shall validate nonce', function () {
+      const r = tokens.isInvalidNonce(nonce)
+      assert.strictEqual(r, false)
+    })
+
+    it('shall get session state', function () {
+      assert.strictEqual(tokens.sessionState(), 'mystate')
+    })
+
+    it('shall get subject', function () {
+      assert.strictEqual(tokens.subject(), 'f:uuid:subject')
+    })
+
+    it('shall get realmAccess', function () {
+      assert.deepStrictEqual(tokens.realmAccess(), { roles: ['read'] })
+    })
+
+    it('shall get resourceAccess', function () {
+      assert.deepStrictEqual(tokens.resourceAccess(), { client: { roles: ['read', 'write'] } })
+    })
+
+    it('shall expire in', function () {
+      assert.strictEqual(tokens.expiresIn(), 298)
+    })
+
+    it('isTokenExpired', function () {
+      assert.strictEqual(tokens.isTokenExpired(), false)
+    })
+
+    it('isTokenExpired with minValidity', function () {
+      assert.strictEqual(tokens.isTokenExpired(300), true)
+    })
+
+    it('shall clear all tokens', function () {
+      tokens.clearTokens()
+      assert.strictEqual(tokens.token, undefined)
+      assert.strictEqual(tokens.refreshToken, undefined)
+      assert.strictEqual(tokens.idToken, undefined)
+      assert.strictEqual(tokens.authenticated, false)
+      assert.strictEqual(tokens.sessionState(), '')
+    })
   })
 
-  it('shall authenticate with calcuating the correct time skew value', async function () {
-    tokens.startTokenRequest()
-    tokens.setTokens(
-      createToken({ realm_access: { roles: ['read'] }, resource_access: { client: { roles: ['read', 'write'] } } }),
-      createToken({ typ: 'Refresh' }),
-      createToken({ typ: 'ID' })
-    )
-    assert.strictEqual(tokens._timeSkew, 2)
-    assert.strictEqual(tokens.authenticated, true)
-    // console.log(tokens)
+  describe('oauth2 tokens with id_token', function () {
+    let tokens
+    before(function () {
+      tokens = new Tokens({ log: _log, useNonce: true })
+    })
+
+    before(function () { this.clock = sinon.useFakeTimers(0) })
+    after(function () { this.clock.restore() })
+
+    it('shall authenticate with calcuating the correct time skew value', function () {
+      const exp = 300
+      tokens.startTokenRequest()
+      this.clock.tick(latency)
+      const tokenResponse = {
+        access_token: 'ABCDEFGHIJKLMNOP',
+        refresh_token: 'ABCDEFGHIJKLMNOP',
+        id_token: createToken({ typ: 'ID', skew }),
+        expires_in: exp
+      }
+      this.clock.tick(latency)
+      tokens.setTokens(tokenResponse)
+      log(tokens)
+      assert.strictEqual(tokens._expiresAt, 302)
+      assert.strictEqual(tokens.authenticated, true)
+    })
+
+    it('shall not get session state', function () {
+      assert.strictEqual(tokens.sessionState(), '')
+    })
+
+    it('shall not get subject', function () {
+      assert.strictEqual(tokens.subject(), undefined)
+    })
+
+    it('shall not get realmAccess', function () {
+      assert.strictEqual(tokens.realmAccess(), undefined)
+    })
+
+    it('shall not get resourceAccess', function () {
+      assert.strictEqual(tokens.resourceAccess(), undefined)
+    })
+
+    it('shall expire in', function () {
+      assert.strictEqual(tokens.expiresIn(), 298)
+    })
+
+    it('isTokenExpired', function () {
+      assert.strictEqual(tokens.isTokenExpired(), false)
+    })
+
+    it('isTokenExpired with minValidity', function () {
+      assert.strictEqual(tokens.isTokenExpired(300), true)
+    })
+
+    it('shall clear all tokens', function () {
+      tokens.clearTokens()
+      assert.strictEqual(tokens.token, undefined)
+      assert.strictEqual(tokens.refreshToken, undefined)
+      assert.strictEqual(tokens.idToken, undefined)
+      assert.strictEqual(tokens.authenticated, false)
+      assert.strictEqual(tokens.sessionState(), '')
+    })
   })
 
-  it('shall get session state', function () {
-    assert.strictEqual(tokens.sessionState(), 'mystate')
+  describe('oauth2 tokens only', function () {
+    let tokens
+    before(function () {
+      tokens = new Tokens({ log: _log, useNonce: true })
+    })
+
+    before(function () { this.clock = sinon.useFakeTimers() })
+    after(function () { this.clock.restore() })
+
+    it('shall authenticate with calcuating the correct time skew value', function () {
+      const exp = 300
+      tokens.startTokenRequest()
+      this.clock.tick(latency)
+      const tokenResponse = {
+        access_token: 'ABCDEFGHIJKLMNOP',
+        refresh_token: 'ABCDEFGHIJKLMNOP',
+        expires_in: exp
+      }
+      this.clock.tick(latency)
+      tokens.setTokens(tokenResponse)
+      log(tokens)
+      assert.strictEqual(tokens._expiresAt, 303)
+      assert.strictEqual(tokens.authenticated, true)
+    })
+
+    it('shall expire in', function () {
+      assert.strictEqual(tokens.expiresIn(), 299)
+    })
+
+    it('isTokenExpired', function () {
+      assert.strictEqual(tokens.isTokenExpired(), false)
+    })
+
+    it('isTokenExpired with minValidity', function () {
+      assert.strictEqual(tokens.isTokenExpired(300), true)
+    })
   })
 
-  it('shall get subject', function () {
-    assert.strictEqual(tokens.subject(), 'f:uuid:subject')
+  describe('localStorage turned on', function () {
+    let tokensPre
+    let tokens
+    before(function () {
+      tokensPre = new Tokens({ log: _log, useLocalStorage: true })
+      tokens = new Tokens({ log: _log, useLocalStorage: true })
+    })
+
+    it('shall set tokens', function () {
+      tokensPre.setTokens({ access_token: 'ABCD' })
+      assert.strictEqual(tokensPre.getTokens().token, 'ABCD')
+    })
+
+    it('shall load tokens', function () {
+      tokens.loadTokens()
+      assert.strictEqual(tokens.getTokens().token, 'ABCD')
+    })
+
+    it('shall clear tokens', function () {
+      tokens.setTokens()
+      assert.strictEqual(tokens.getTokens().token, undefined)
+    })
   })
 
-  it('shall get realmAccess', function () {
-    assert.deepStrictEqual(tokens.realmAccess(), { roles: ['read'] })
-  })
+  describe('localStorage turned off', function () {
+    let tokens
+    before(function () {
+      tokens = new Tokens({ log: _log, useLocalStorage: false })
+    })
 
-  it('shall get resourceAccess', function () {
-    assert.deepStrictEqual(tokens.resourceAccess(), { client: { roles: ['read', 'write'] } })
-  })
+    it('shall ignore loading tokens', function () {
+      tokens.loadTokens()
+      assert.strictEqual(tokens.getTokens().token, undefined)
+    })
 
-  it('shall expire in', function () {
-    assert.strictEqual(tokens.expiresIn(), 299)
-  })
+    it('shall set tokens', function () {
+      tokens.setTokens({ access_token: 'ABCD' })
+      assert.strictEqual(tokens.getTokens().token, 'ABCD')
+    })
 
-  it('isTokenExpired', function () {
-    assert.strictEqual(tokens.isTokenExpired(), false)
-  })
-
-  it('isTokenExpired with minValidity', function () {
-    assert.strictEqual(tokens.isTokenExpired(300), true)
-  })
-
-  it('shall clear all tokens', function () {
-    tokens.clearTokens()
-    assert.strictEqual(tokens.authenticated, false)
-    assert.strictEqual(tokens.sessionState(), '')
+    it('shall clear tokens', function () {
+      tokens.setTokens()
+      assert.strictEqual(tokens.getTokens().token, undefined)
+    })
   })
 })

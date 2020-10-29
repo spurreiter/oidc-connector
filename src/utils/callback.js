@@ -62,11 +62,13 @@ export class Callback {
   }
 
   _parseUrl (url) {
-    const supportedParams = PARAMS[this._flow] || []
-    supportedParams.push(RESPONSE_MODE)
-    supportedParams.push(ERROR)
-    supportedParams.push(ERROR_DESCRIPTION)
-    supportedParams.push(ERROR_URI)
+    let supportedParams = PARAMS[this._flow] || []
+    supportedParams = supportedParams.concat([
+      RESPONSE_MODE,
+      ERROR,
+      ERROR_DESCRIPTION,
+      ERROR_URI
+    ])
 
     let oauth
     const uri = new URL(url)
@@ -100,6 +102,6 @@ export class Callback {
       }
     }
 
-    this.log.error('bad params %o for %s flow', oauth, this._flow)
+    this.log.error('bad parameters %o for %s flow', oauth, this._flow)
   }
 }

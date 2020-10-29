@@ -3,7 +3,7 @@ import assert from 'assert'
 import http from 'http'
 import fetchPoly from 'whatwg-fetch'
 import { loadConfig } from '../src/utils/index.js'
-import { keycloakJson, oidcProviderResponse } from './fixtures/index.js'
+import { wellKnownOidcKeycloak } from './fixtures/index.js'
 import debug from 'debug'
 
 const log = debug('test')
@@ -27,10 +27,10 @@ describe('utils/loadConfig', function () {
   before(function () {
     this.server = http.createServer((req, res) => {
       const { method, url } = req
-      if (url === '/keycloak.json') {
-        res.body = JSON.stringify(keycloakJson)
-      } else if (url === '/.well-known/openid-configuration') {
-        res.body = JSON.stringify(oidcProviderResponse)
+      if (url === '/auth/realms/my/.well-known/openid-configuration') {
+        res.body = JSON.stringify(wellKnownOidcKeycloak)
+      } else if (url === '/auth/.well-known/openid-configuration') {
+        res.body = JSON.stringify(wellKnownOidcKeycloak)
       } else {
         res.statusCode = 404
       }
@@ -42,40 +42,16 @@ describe('utils/loadConfig', function () {
     this.server.close()
   })
 
-  it('shall load config from keycloak.json', async function () {
-    const config = await loadConfig()
-    assert.deepStrictEqual(config, {
-      authServerUrl: 'http://localhost:8080/auth/',
-      realm: 'master',
-      clientId: 'local-server'
-    })
-  })
-
-  it('shall load config from string', async function () {
-    const config = await loadConfig('/keycloak.json')
-    assert.deepStrictEqual(config, {
-      authServerUrl: 'http://localhost:8080/auth/',
-      realm: 'master',
-      clientId: 'local-server'
-    })
-  })
-
   it('shall take config from object', async function () {
     const config = await loadConfig({
-      url: 'http://localhost:8080/auth/',
-      realm: 'master',
+      url: `http://localhost:${port}/auth`,
+      realm: 'my',
       clientId: 'local-server'
     })
     assert.deepStrictEqual(config, {
-      authServerUrl: 'http://localhost:8080/auth/',
-      realm: 'master',
-      clientId: 'local-server'
-    })
-  })
-
-  it('shall throw if config could not be loaded is missing', async function () {
-    await loadConfig(`http://localhost:${port}/config`).catch(err => {
-      assert.strictEqual(err.message, `Error: error loading config http://localhost:${port}/config`)
+      serverUrl: `http://localhost:${port}/auth/realms/my`,
+      clientId: 'local-server',
+      oidcConfig: wellKnownOidcKeycloak
     })
   })
 
@@ -86,46 +62,30 @@ describe('utils/loadConfig', function () {
   })
 
   it('shall throw if clientId is missing', async function () {
-    await loadConfig({ url: 'http://localhost:8080/auth/' }).catch(err => {
+    await loadConfig({ url: 'http://localhost:8080/auth' }).catch(err => {
       assert.strictEqual(err.message, 'clientId missing')
-    })
-  })
-
-  it('shall load oidcProvider from url', async function () {
-    const config = await loadConfig({
-      url: 'http://localhost:8080/auth/',
-      clientId: 'local-server',
-      oidcProvider: `http://localhost:${port}`
-    })
-    assert.deepStrictEqual(config, {
-      authServerUrl: 'http://localhost:8080/auth/',
-      clientId: 'local-server',
-      realm: undefined,
-      oidcProvider: oidcProviderResponse
     })
   })
 
   it('shall use oidcProvider from object', async function () {
     const config = await loadConfig({
-      url: 'http://localhost:8080/auth/',
+      url: `http://localhost:${port}/auth`,
       clientId: 'local-server',
-      oidcProvider: oidcProviderResponse
+      oidcConfig: wellKnownOidcKeycloak
     })
     assert.deepStrictEqual(config, {
-      authServerUrl: 'http://localhost:8080/auth/',
+      serverUrl: `http://localhost:${port}/auth`,
       clientId: 'local-server',
-      realm: undefined,
-      oidcProvider: oidcProviderResponse
+      oidcConfig: wellKnownOidcKeycloak
     })
   })
 
-  it('shall throw if oidcProvider could not be loaded is missing', async function () {
+  it('shall throw if oidcConfig could not be loaded', async function () {
     await loadConfig({
-      url: 'http://localhost:8080/auth/',
-      clientId: 'local-server',
-      oidcProvider: `http://localhost:${port}`
+      url: `http://localhost:${port}/not-there`,
+      clientId: 'local-server'
     }).catch(err => {
-      assert.strictEqual(err.message, `Error: error loading oidcProvider http://localhost:${port}/.well-known/openid-configuration`)
+      assert.strictEqual(err.message, `error loading oidcConfig http://localhost:${port}/not-there/.well-known/openid-configuration`)
     })
   })
 })

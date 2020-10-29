@@ -1,11 +1,13 @@
 
 export class Adapter {
-  constructor (options) {
-    this.options = options
+  initialize (client) {
+    this.client = client
+    this.endpoints = client.endpoints
+    this.options = client.options
   }
 
-  initialize (client) {
-    this.endpoints = client.endpoints
+  _isInitialized () {
+    if (!this.options) throw new Error('adapter not initialized')
   }
 
   redirectUri () {
@@ -13,22 +15,26 @@ export class Adapter {
   }
 
   async login () {
-    const url = this.endpoints.createLoginUrl(this.options)
-    window.location.replace(url)
-  }
-
-  async logout () {
-    const url = this.endpoints.createLogoutUrl(this.options)
+    this._isInitialized()
+    const url = await this.endpoints.createLoginUrl(this.options)
     window.location.replace(url)
   }
 
   async register () {
-    const url = this.endpoints.createRegisterUrl(this.options)
+    this._isInitialized()
+    const url = await this.endpoints.createRegisterUrl(this.options)
+    window.location.replace(url)
+  }
+
+  async logout () {
+    this._isInitialized()
+    const url = await this.endpoints.createLogoutUrl(this.options)
     window.location.replace(url)
   }
 
   async account () {
-    var url = this.endpoints.createAccountUrl()
+    this._isInitialized()
+    const url = await this.endpoints.createAccountUrl()
     if (url) {
       window.location.href = url
     } else {

@@ -1,4 +1,5 @@
 import { get } from './get.js'
+import { absoluteUrl } from './urls.js'
 
 import {
   FRAGMENT,
@@ -35,12 +36,14 @@ export function initOptions (options = {}) {
 
   const opts = {
     ...options,
-    loginRequired: set(options.loginRequired, false),
+    forceLogin: set(options.forceLogin, false),
+    forceLogout: set(options.forceLogout, true),
     useNonce: set(options.useNonce, true),
-    statusIframe: set(options.statusIframe, true),
+    useLocalStorage: set(options.useLocalStorage, true),
+    useStatusIframe: set(options.useStatusIframe, true),
     statusIframeInterval: set(number(options.statusIframeInterval), 5),
     responseMode: set(options.responseMode, [FRAGMENT, QUERY]),
-    responseType: set(options.flow, (
+    responseType: set(options.responseType, (
       [[CODE], [ID_TOKEN, TOKEN], [CODE, ID_TOKEN, TOKEN]].map(a => a.join(' '))
     )),
     flow: set(options.flow, [STANDARD, IMPLICIT, HYBRID]),

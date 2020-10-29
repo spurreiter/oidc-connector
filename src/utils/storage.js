@@ -8,7 +8,7 @@ function getCookie (key) {
   for (let i = 0; i < ca.length; i++) {
     const c = ca[i].trimStart()
     if (c.indexOf(name) === 0) {
-      return c.substring(name.length, c.length)
+      return decodeURIComponent(c.substring(name.length, c.length))
     }
   }
   return ''
@@ -20,7 +20,7 @@ function getCookies () {
   for (let i = 0; i < ca.length; i++) {
     const c = ca[i].trimStart()
     const [_, key, value] = /^([^=]+)=(.*)$/.exec(c) // eslint-disable-line no-unused-vars
-    obj[key] = value
+    obj[key] = decodeURIComponent(value)
   }
   return obj
 }
@@ -32,7 +32,7 @@ function cookieExpiration (minutes) {
 }
 
 function setCookie (key, value, expirationDate) {
-  const cookie = `${key}=${value}; expires=${expirationDate.toUTCString()}; `
+  const cookie = `${key}=${encodeURIComponent(value)}; expires=${expirationDate.toUTCString()}; `
   document.cookie = cookie
 }
 

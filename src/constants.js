@@ -31,7 +31,4 @@ export const NONE = 'none'
 export const LOGIN = 'login'
 
 // content-type
-export const FORM_URLENCODED = 'application/x-www-form-urlencoded'
-
-// onload options
-export const CHECK_SSO = 'check-sso'
+export const TYPE_URLENCODED = 'application/x-www-form-urlencoded'

@@ -1,7 +1,7 @@
 
 export const createToken = ({
+  skew = 2, // server is 2 seconds ahead in time
   sessionState = 'mystate',
-  iat = -2,
   exp = 300,
   typ = 'Bearer',
   scope = 'openid',
@@ -14,8 +14,8 @@ export const createToken = ({
   }
   const now = (Date.now() / 1000 | 0)
   const payload = {
-    exp: now + iat + exp,
-    iat: now + iat,
+    exp: now + skew + exp,
+    iat: now + skew,
     aud: 'audience',
     scope,
     sub,

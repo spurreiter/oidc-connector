@@ -1,6 +1,19 @@
+
+const map = {
+  '-': '+',
+  _: '/'
+}
+const RE_MAP = /[_-]/g
+
+/**
+ * decode a JWT
+ * @throws
+ * @param {string} [token='']
+ * @return {object} payload of decoded token
+ */
 export function decodeToken (token = '') {
   const payload = token.split('.')[1]
-  let b64 = payload.replace(/-/g, '+').replace(/_/g, '/')
+  let b64 = payload.replace(RE_MAP, m => map[m])
 
   switch (b64.length % 4) {
     case 0:

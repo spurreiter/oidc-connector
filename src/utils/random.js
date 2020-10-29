@@ -1,16 +1,16 @@
 export function genRandomData (len) {
   // use web crypto APIs if possible
   const crypto = window.crypto || window.msCrypto
-  if (crypto && crypto.getRandomValues && Uint8Array) {
+  if (crypto && crypto.getRandomValues) {
     const array = new Uint8Array(len)
     crypto.getRandomValues(array)
-    return array
+    return Array.from(array)
   }
 
   // fallback to Math random
   const array = new Array(len)
-  for (let j = 0; j < array.length; j++) {
-    array[j] = Math.floor(256 * Math.random())
+  for (let i = 0; i < array.length; i++) {
+    array[i] = (Math.random() * 256) | 0
   }
   return array
 }

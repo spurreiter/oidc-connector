@@ -1,9 +1,16 @@
 /* eslint camelcase: 0 */
 
 import crypto from 'crypto'
+import fs from 'fs'
+import path from 'path'
 import { URL, URLSearchParams, fileURLToPath } from 'url'
 import jsrsasign from 'jsrsasign'
 import express from 'express'
+import cors from 'cors'
+import cookieParser from 'cookie-parser'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 const port = 3000
 
@@ -66,7 +73,7 @@ function hashAccessToken (token) {
 
 // --- server related stuff
 
-const getPaths = ({ baseUrl }) => ({
+const getPaths = ({ baseUrl, noCheckSession }) => ({
   issuer: baseUrl,
   oidcUri: baseUrl + '/.well-known/openid-configuration',
   jwksUri: baseUrl + '/certs',
@@ -74,38 +81,87 @@ const getPaths = ({ baseUrl }) => ({
   tokenEndpoint: baseUrl + '/token',
   userinfoEndpoint: baseUrl + '/userinfo',
   endSessionEndpoint: baseUrl + '/logout',
-  checkSessionIframe: baseUrl + '/login-status-iframe.html'
+  checkSessionIframe: !noCheckSession ? baseUrl + '/login-status-iframe.html' : undefined
 })
 
-const getWellKnownConfig = (paths, { protocol = 'http:', hostname, port }) => {
-  const url = `${protocol}//${hostname}${port ? `:${port}` : ''}`
+const getWellKnownConfig = (paths, { origin = '' }) => {
   const { oidcUri, ...rest } = paths
   return Object.entries(rest).reduce((o, [key, val]) => {
-    o[toSnakeCase(key)] = url + val
+    o[toSnakeCase(key)] = origin + val
     return o
   }, {})
 }
 
-const createToken = ({ iss, aud, sub, nonce, state, at_hash, exp = 300, typ = 'Bearer', claims }) => {
-  var now = (Date.now() / 1000 | 0)
-  var payload = {
+const createToken = ({
+  issuer,
+  aud,
+  sub,
+  nonce,
+  state,
+  at_hash,
+  exp = 300,
+  typ = 'Bearer',
+  now = (Date.now() / 1000 | 0),
+  claims
+}) => {
+  const payload = {
     exp: now + exp,
     iat: now,
     jti: uuid4(),
-    iss,
+    iss: issuer,
     aud,
     acr: 1,
     typ,
     sub,
     nonce,
     session_state: state,
+    sid: state, // TODO verify
     at_hash,
     ...claims
   }
   return payload
 }
 
+const getTokens = (jwks, {
+  issuer,
+  aud,
+  state,
+  nonce,
+  exp,
+  claims
+}) => {
+  const access_token = jwks.signToken(createToken({ issuer, aud, state, nonce, exp, claims }))
+  const at_hash = hashAccessToken(access_token)
+  const id_token = jwks.signToken(createToken({ typ: 'ID', issuer, aud, at_hash, state, nonce, exp, claims }))
+  const refresh_token = jwks.signToken(createToken({ typ: 'Refresh', issuer, aud, state, nonce, exp: exp * 5 }))
+  return {
+    access_token,
+    id_token,
+    refresh_token
+  }
+}
+
+const viewSessionIframe = `<html>
+<body>
+<script>
+${fs.readFileSync(`${__dirname}/view-session-iframe.js`)}
+</script>
+</body>
+</html>
+`
+
 // --- express middlewares
+
+function logger (req, res, next) {
+  const start = Date.now()
+  res.once('finish', () => {
+    const ms = Date.now() - start
+    const { method, url } = req
+    const status = res.statusCode
+    console.log('%j', { status, method, url, ms })
+  })
+  next()
+}
 
 function bodyParser (req, res, next) {
   let text = ''
@@ -125,11 +181,13 @@ function bodyParser (req, res, next) {
           o[key] = val
           return o
         }, {})
+      next()
     } catch (err) {
       req.body = { text, err }
+      next(err)
     }
-    next()
   })
+  res.on('error', (err) => next(err))
 }
 
 // --- server
@@ -140,13 +198,26 @@ export function setup ({
   baseUrl = '/oidc',
   protocol = 'http:',
   hostname = 'localhost',
-  port = 3000
+  port = 3000,
+  noCheckSession = false
 } = {}) {
   const jwks = new RsaKey()
-  const paths = getPaths({ baseUrl })
-  const oidcConfig = getWellKnownConfig(paths, { protocol, hostname, port })
+  const origin = `${protocol}//${hostname}${port ? `:${port}` : ''}`
+  const issuer = `${origin}${baseUrl}`
+  const paths = getPaths({ baseUrl, noCheckSession })
+  const oidcConfig = getWellKnownConfig(paths, { origin, noCheckSession })
   const app = express()
-  app._port = port
+  const nonces = new Map()
+
+  const conf = {
+    exp: 30,
+    claims: {
+      name: 'Alice',
+      email: 'alice@wonder.land'
+    }
+  }
+
+  app.use(logger, cors({ origin: true, credentials: true }))
 
   app.get(paths.oidcUri, (req, res) => {
     res.type('json').json(oidcConfig)
@@ -157,50 +228,70 @@ export function setup ({
   })
 
   app.get(paths.authorizationEndpoint, (req, res) => {
-    const { response_type, /* scope, client_id, */ redirect_uri, state, response_mode, nonce } = req.query
-    const fragmentize = url => response_mode === 'fragment'
-      ? url.replace(/[?]/, '#')
-      : url
+    const { response_type = '', /* scope, */ client_id: aud, redirect_uri, state, response_mode, nonce } = req.query
+    const fragmentize = url => {
+      if (response_mode === 'fragment') {
+        const u = new URL(url)
+        u.hash = u.search.substring(1)
+        u.search = ''
+        return u.toString()
+      }
+      return url
+    }
 
+    state && nonces.set(state, nonce)
+
+    let isValidResponseType = false
     let url
+    const params = { state }
 
-    if (response_type === 'code') {
-      const code = uuid4()
-      url = fragmentize(createUrl(redirect_uri, { code, response_type, state, nonce }))
-      res.cookie('SESSION_STATE', state, { path: paths.authorizationEndpoint })
+    const { access_token, id_token } = getTokens(jwks, { issuer, aud, state, nonce, ...conf })
+    if (response_type.includes('code')) {
+      params.code = uuid4()
+      isValidResponseType = true
+    }
+    if (response_type.includes('token')) {
+      params.access_token = access_token
+      params.token_type = 'Bearer'
+      isValidResponseType = true
+    }
+    if (response_type.includes('id_token')) {
+      params.id_token = id_token
+      isValidResponseType = true
+    }
+
+    if (isValidResponseType) {
+      url = fragmentize(createUrl(redirect_uri, params))
+      res.cookie('SESSION_STATE', `${aud}/${state}`)
     } else {
       url = fragmentize(createUrl(redirect_uri, { error: 'unsupported_response_type', state, nonce }))
-      res.clearCookie('SESSION_STATE', { path: paths.authorizationEndpoint })
+      res.clearCookie('SESSION_STATE')
     }
     res.redirect(url)
   })
 
-  app.post(paths.tokenEndpoint, bodyParser, (req, res) => {
-    const iss = `http://localhost:${port}${baseUrl}`
+  app.post(paths.tokenEndpoint, bodyParser, cookieParser(), (req, res) => {
     const {
-      // grant_type,
+      grant_type,
+      client_id: aud
       // code,
-      client_id: aud,
       // redirect_uri,
-      state,
-      nonce
     } = req.body
 
-    const exp = 300
-    const claims = {
-      name: 'Alice',
-      email: 'alice@wonder.land'
+    // eslint-disable-next-line
+    const [_, state] = (req.cookies.SESSION_STATE || '').split('/')
+    const nonce = state && nonces.get(state)
+    nonces.delete(state)
+
+    if (!['authorization_code', 'refresh_token'].includes(grant_type)) {
+      res.status(400).type('json').json({ error: 'invalid_request' })
+      return
     }
 
-    const access_token = jwks.signToken(createToken({ iss, aud, state, nonce, exp, claims }))
-    const at_hash = hashAccessToken(access_token)
-
     res.body = {
-      access_token,
-      expires_in: exp,
+      expires_in: conf.exp,
       token_type: 'Bearer',
-      refresh_token: jwks.signToken(createToken({ typ: 'Refresh', iss, aud, state, nonce, exp: exp * 5 })),
-      id_token: jwks.signToken(createToken({ typ: 'ID', iss, aud, at_hash, state, nonce, exp, claims }))
+      ...(getTokens(jwks, { issuer, aud, state, nonce, ...conf }))
     }
 
     res.json(res.body)
@@ -217,9 +308,22 @@ export function setup ({
     }
   })
 
+  app.get(paths.endSessionEndpoint, (req, res) => {
+    const { redirect_uri } = req.query
+    res.clearCookie('SESSION_STATE')
+    res.redirect(redirect_uri)
+  })
+
+  if (paths.checkSessionIframe) {
+    app.get(paths.checkSessionIframe, (req, res) => {
+      res.type('html').end(viewSessionIframe)
+    })
+  }
+
   return app
 }
 
-if (fileURLToPath(import.meta.url) === process.argv[1]) {
+if (__filename === process.argv[1]) {
+// if (module === require.main) {
   setup().listen(port)
 }

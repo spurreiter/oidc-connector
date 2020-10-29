@@ -1,2 +1,2 @@
-export * from './keycloak.json.js'
-export * from './oidcProviderResponse.js'
+export * from './oidcKeycloak.js'
+export * from './oidcGoogle.js'

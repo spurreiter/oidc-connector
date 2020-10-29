@@ -1,20 +1,26 @@
-import { uuid4, clearUrl, createUrl } from './utils/index.js'
+import { uuid4, createUrl } from './utils/index.js'
 
 const OPENID = 'openid'
 
-class EndpointsBase {
-  constructor (realmUrl) {
-    if (!realmUrl) throw new Error('realmUrl required')
-    this.realmUrl = clearUrl(realmUrl)
+export class Endpoints {
+  constructor (serverUrl, oidcConfig, callback) {
+    if (!oidcConfig ||
+        !oidcConfig.authorization_endpoint ||
+        !oidcConfig.token_endpoint) {
+      throw new Error('oidcConfig required')
+    }
+    this.serverUrl = serverUrl
+    this.oidcConfig = oidcConfig
+    this.callback = callback
   }
 
-  getRealmUrl () {
-    return this.realmUrl
+  _maybeKeycloak () {
+    return this.token().includes('/realms/')
   }
 
-  async createLoginUrl (options, callback) {
-    var state = uuid4()
-    var nonce = uuid4()
+  async createLoginUrl (options) {
+    const state = uuid4()
+    const nonce = uuid4()
 
     const {
       clientId,
@@ -32,10 +38,12 @@ class EndpointsBase {
       pkceMethod
     } = options
 
+    const doRegister = action === 'register'
+
     const callbackState = {
       state,
       nonce,
-      redirectUri: encodeURIComponent(redirectUri),
+      redirectUri,
       expires: new Date().getTime() + 60000
     }
 
@@ -43,7 +51,7 @@ class EndpointsBase {
       callbackState.prompt = prompt
     }
 
-    const baseUrl = action === 'register'
+    const baseUrl = doRegister
       ? this.register()
       : this.authorize()
 
@@ -75,7 +83,7 @@ class EndpointsBase {
     if (useNonce) {
       query.nonce = nonce
     }
-    if (action && action !== 'register') {
+    if (action && !doRegister) {
       query.action = action
     }
     if (pkceMethod && options.pkce) {
@@ -85,14 +93,13 @@ class EndpointsBase {
       query.code_challenge_method = pkceMethod
     }
 
-    callback.store(callbackState)
-
+    this.callback.store(callbackState)
+    console.log(baseUrl, query)
     return createUrl(baseUrl, query)
   }
 
-  async createRegisterUrl (options, callback) {
-    const options_ = { ...options, action: 'register' }
-    return this.createLoginUrl(options_, callback)
+  async createRegisterUrl (options) {
+    return this.createLoginUrl({ ...options, action: 'register' })
   }
 
   async createLogoutUrl (options) {
@@ -104,8 +111,8 @@ class EndpointsBase {
 
   async createAccountUrl (options) {
     const { clientId, redirectUri } = options
-    var realmUrl = this.getRealmUrl()
-    return createUrl(`${realmUrl}/account`, {
+    const url = this.account()
+    return createUrl(url, {
       referrer: clientId,
       referrer_uri: redirectUri
     })
@@ -113,49 +120,6 @@ class EndpointsBase {
 
   createTokenUrl (query) {
     return createUrl(this.token(), query)
-  }
-}
-
-export class EndpointsRealm extends EndpointsBase {
-  constructor (realmUrl) {
-    super(realmUrl)
-    this.baseUrl = `${this.realmUrl}/protocol/openid-connect`
-  }
-
-  authorize () {
-    return `${this.baseUrl}/auth`
-  }
-
-  token () {
-    return `${this.baseUrl}/token`
-  }
-
-  logout () {
-    return `${this.baseUrl}/logout`
-  }
-
-  checkSessionIframe () {
-    return `${this.baseUrl}/login-status-iframe.html`
-  }
-
-  thirdPartyCookiesIframe () {
-    return `${this.baseUrl}/3p-cookies/step1.html`
-  }
-
-  register () {
-    return `${this.baseUrl}/registrations`
-  }
-
-  userinfo () {
-    return `${this.baseUrl}/userinfo`
-  }
-}
-
-export class EndpointsOicd extends EndpointsBase {
-  constructor (realmUrl, oidcConfig) {
-    super(realmUrl)
-    if (!oidcConfig) throw new Error('oidcConfig required')
-    this.oidcConfig = oidcConfig
   }
 
   authorize () {
@@ -167,37 +131,51 @@ export class EndpointsOicd extends EndpointsBase {
   }
 
   logout () {
-    if (!this.oidcConfig.end_session_endpoint) {
-      throw new Error('Not supported by the OIDC server')
-    }
+    // may be undefined
     return this.oidcConfig.end_session_endpoint
   }
 
   checkSessionIframe () {
-    if (!this.oidcConfig.check_session_iframe) {
-      throw new Error('Not supported by the OIDC server')
-    }
+    // may be undefined
     return this.oidcConfig.check_session_iframe
   }
 
-  thirdPartyCookiesIframe () {
-    throw new Error('Not supported by the OIDC server')
+  /*
+  checkThirdPartyCookiesIframe () {
+    // not defined in standard OIDC mode
+    let url = this.oidcConfig.check_3pcookies_iframe
+    if (!url && this._maybeKeycloak()) {
+      url = this.authorize().replace(/\/[^/]+$/, '/3p-cookies/step1.html')
+    }
+    return url
   }
+  */
 
   register () {
-    throw new Error('Redirection to "Register user" page not supported in standard OIDC mode')
+    // not defined in standard OIDC mode
+    let url = this.oidcConfig.register_endpoint
+    if (!url && this._maybeKeycloak()) {
+      url = this.authorize().replace(/\/[^/]+$/, '/registrations')
+    }
+    if (!url) throw new Error('no register_endpoint')
+    return url
+  }
+
+  account () {
+    // not defined in standard OIDC mode
+    let url = this.oidcConfig.account_endpoint
+    if (!url && this._maybeKeycloak()) {
+      url = `${this.serverUrl}/account`
+    }
+    if (!url) throw new Error('no account_endpoint')
+    return url
   }
 
   userinfo () {
-    if (!this.oidcConfig.userinfo_endpoint) {
-      throw new Error('Not supported by the OIDC server')
-    }
+    // may be undefined
     return this.oidcConfig.userinfo_endpoint
   }
 }
 
-export function endpoints (realmUrl, oidcConfig) {
-  return (typeof oidcConfig === 'object' && oidcConfig.token_endpoint)
-    ? new EndpointsOicd(realmUrl, oidcConfig)
-    : new EndpointsRealm(realmUrl)
-}
+export const endpoints = (serverUrl, oidcConfig, callback) =>
+  new Endpoints(serverUrl, oidcConfig, callback)

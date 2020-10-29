@@ -19,23 +19,25 @@ describe('utils/initOptions', function () {
     testLog(_log)
 
     assert.deepStrictEqual(opts, {
+      forceLogin: false,
+      forceLogout: true,
       useNonce: true,
-      statusIframe: true,
+      useLocalStorage: true,
+      useStatusIframe: true,
       statusIframeInterval: 5,
       responseMode: 'fragment',
       responseType: 'code',
       flow: 'standard',
       prompt: 'none',
       minValidity: 15,
-      expiryInterval: 5,
-      loginRequired: false
+      expiryInterval: 5
     })
   })
 
   it('shall fallback to default options', function () {
     const { log: _log, ...opts } = initOptions({
       useNonce: '##',
-      statusIframe: '##',
+      useStatusIframe: '##',
       statusIframeInterval: '##',
       responseMode: '##',
       responseType: '##',
@@ -50,8 +52,11 @@ describe('utils/initOptions', function () {
     testLog(_log)
 
     assert.deepStrictEqual(opts, {
+      forceLogin: false,
+      forceLogout: true,
       useNonce: true,
-      statusIframe: true,
+      useLocalStorage: true,
+      useStatusIframe: true,
       statusIframeInterval: 5,
       responseMode: 'fragment',
       responseType: 'code',
@@ -59,7 +64,6 @@ describe('utils/initOptions', function () {
       prompt: 'none',
       minValidity: 15,
       expiryInterval: 5,
-      loginRequired: false,
       foo: 'bar'
     })
   })

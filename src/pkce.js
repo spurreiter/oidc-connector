@@ -2,6 +2,13 @@ import crypto from 'crypto-hash'
 
 import { genRandomData } from './utils/index.js'
 
+const map = {
+  '+': '-',
+  '/': '_',
+  '=': ''
+}
+const RE_MAP = /[+/=]/g
+
 function uint8ArrayToString (arrUint8) {
   var sUtf8 = ''
   for (let i = 0; i < arrUint8.length; i++) {
@@ -12,17 +19,12 @@ function uint8ArrayToString (arrUint8) {
 
 function genCodeVerifier (len) {
   const binary = uint8ArrayToString(genRandomData(len))
-  return window.btoa(binary)
-    .replace(/[/+=]/g, '')
-    .substring(0, len)
+  return window.btoa(binary).replace(RE_MAP, '').substring(0, len)
 }
 
 function base64Encode (hash) {
   const binary = uint8ArrayToString(new Uint8Array(hash))
-  const encoded = window.btoa(binary)
-    .replace(/[+]/g, '-')
-    .replace(/[/]/g, '_')
-    .replace(/=/g, '')
+  const encoded = window.btoa(binary).replace(RE_MAP, m => map[m])
   return encoded
 }
 

@@ -1,8 +1,12 @@
 export function createPromise () {
+  let _resolve
+  let _reject
   const promise = new Promise((resolve, reject) => {
-    promise.resolve = resolve
-    promise.reject = reject
+    _resolve = resolve
+    _reject = reject
   })
+  promise.resolve = _resolve
+  promise.reject = _reject
   return promise
 }
 

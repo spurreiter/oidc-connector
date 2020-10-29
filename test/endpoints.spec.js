@@ -5,7 +5,7 @@ import { endpoints } from '../src/endpoints.js'
 import { pkce } from '../src/pkce.js'
 import debug from 'debug'
 
-import { oidcProviderResponse } from './fixtures/index.js'
+import { wellKnownOidcKeycloak } from './fixtures/index.js'
 
 const log = debug('test')
 
@@ -24,111 +24,60 @@ describe('endpoints', function () {
   })
 
   describe('oauth2 urls', function () {
-    let realmUrl
+    const serverUrl = 'http://localhost:8080/auth/realms/my'
     let ep
 
     before(function () {
-      realmUrl = 'http://example.org/auth'
-      ep = endpoints(realmUrl)
+      ep = endpoints(serverUrl, wellKnownOidcKeycloak)
     })
 
-    it('shall throw if realmUrl is missing', function () {
+    it('shall throw if serverUrl is missing', function () {
       assert.throws(() => {
         endpoints()
-      }, /Error: realmUrl required/)
+      }, /Error: oidcConfig required/)
     })
 
     it('shall return authorize url', function () {
-      assert.strictEqual(ep.authorize(), realmUrl + '/protocol/openid-connect/auth')
+      assert.strictEqual(ep.authorize(), serverUrl + '/protocol/openid-connect/auth')
     })
 
     it('shall return register url', function () {
-      assert.strictEqual(ep.register(), realmUrl + '/protocol/openid-connect/registrations')
+      assert.strictEqual(ep.register(), serverUrl + '/protocol/openid-connect/registrations')
     })
 
     it('shall return token url', function () {
-      assert.strictEqual(ep.token(), realmUrl + '/protocol/openid-connect/token')
+      assert.strictEqual(ep.token(), serverUrl + '/protocol/openid-connect/token')
     })
 
     it('shall return logout url', function () {
-      assert.strictEqual(ep.logout(), realmUrl + '/protocol/openid-connect/logout')
+      assert.strictEqual(ep.logout(), serverUrl + '/protocol/openid-connect/logout')
     })
 
     it('shall return session login url', function () {
-      assert.strictEqual(ep.checkSessionIframe(), realmUrl + '/protocol/openid-connect/login-status-iframe.html')
-    })
-
-    it('shall return 3rd party cookies check url', function () {
-      assert.strictEqual(ep.thirdPartyCookiesIframe(), realmUrl + '/protocol/openid-connect/3p-cookies/step1.html')
+      assert.strictEqual(ep.checkSessionIframe(), serverUrl + '/protocol/openid-connect/login-status-iframe.html')
     })
 
     it('shall return userinfo url', function () {
-      assert.strictEqual(ep.userinfo(), realmUrl + '/protocol/openid-connect/userinfo')
-    })
-  })
-
-  describe('oicdprovider urls', function () {
-    let realmUrl
-    let ep
-
-    before(function () {
-      realmUrl = 'http://example.org/auth'
-      ep = endpoints(realmUrl, oidcProviderResponse)
-    })
-
-    it('shall throw if realmUrl is missing', function () {
-      assert.throws(() => {
-        endpoints()
-      }, /Error: realmUrl required/)
-    })
-
-    it('shall return authorize url', function () {
-      assert.strictEqual(ep.authorize(), 'https://accounts.google.com/o/oauth2/v2/auth')
-    })
-
-    it('throws on register url', function () {
-      assert.throws(() => {
-        ep.register()
-      }, /Error: Redirection to "Register user" page not supported in standard OIDC mode/)
-    })
-
-    it('shall return token url', function () {
-      assert.strictEqual(ep.token(), 'https://oauth2.googleapis.com/token')
-    })
-
-    it('throws on logout url', function () {
-      assert.throws(() => {
-        ep.logout()
-      }, /Error: Not supported by the OIDC server/)
-    })
-
-    it('throws on session login url', function () {
-      assert.throws(() => {
-        ep.checkSessionIframe()
-      }, /Error: Not supported by the OIDC server/)
-    })
-
-    it('shall return 3rd party cookies check url', function () {
-      assert.throws(() => {
-        ep.thirdPartyCookiesIframe()
-      }, /Error: Not supported by the OIDC server/)
-    })
-
-    it('shall return userinfo url', function () {
-      assert.strictEqual(ep.userinfo(), 'https://openidconnect.googleapis.com/v1/userinfo')
+      assert.strictEqual(ep.userinfo(), serverUrl + '/protocol/openid-connect/userinfo')
     })
   })
 
   describe('createLoginUrl', function () {
+    let ep
+
+    before(function () {
+      const serverUrl = 'http://localhost:8080/auth/realms/my'
+      ep = endpoints(serverUrl, wellKnownOidcKeycloak)
+    })
+
     it('shall return default url', async function () {
-      const authServerUrl = 'https://example.com/auth'
       const options = {
         redirectUri: location.href,
         responseMode: 'fragment'
       }
-      const ep = endpoints(authServerUrl)
       const cb = new Callback(options)
-      const url = await ep.createLoginUrl(options, cb)
+      ep.callback = cb
+      const url = await ep.createLoginUrl(options)
 
       const u = new URL(url)
       const state = u.searchParams.get('state')
@@ -136,8 +85,8 @@ describe('endpoints', function () {
       assert.ok(state, 'shall have state param')
       assert.ok(cb._store.get(state), 'should get state from callback store')
 
-      assert.strictEqual(u.host, 'example.com')
-      assert.strictEqual(u.pathname, '/auth/protocol/openid-connect/auth')
+      assert.strictEqual(u.host, 'localhost:8080')
+      assert.strictEqual(u.pathname, '/auth/realms/my/protocol/openid-connect/auth')
 
       const query = searchParams(u)
       query.state = query.state && '**'
@@ -151,7 +100,6 @@ describe('endpoints', function () {
     })
 
     it('shall return login url with all parameters set', async function () {
-      const authServerUrl = 'https://example.com/auth'
       const options = {
         clientId: 'my-client',
         redirectUri: location.href,
@@ -166,9 +114,9 @@ describe('endpoints', function () {
         action: 'register',
         locale: 'de'
       }
-      const ep = endpoints(authServerUrl)
       const cb = new Callback(options)
-      const url = await ep.createLoginUrl(options, cb)
+      ep.callback = cb
+      const url = await ep.createLoginUrl(options)
 
       const u = new URL(url)
       const state = u.searchParams.get('state')
@@ -178,8 +126,8 @@ describe('endpoints', function () {
       log(cbState)
       assert.ok(cbState, 'should get state from callback store')
 
-      assert.strictEqual(u.host, 'example.com')
-      assert.strictEqual(u.pathname, '/auth/protocol/openid-connect/registrations')
+      assert.strictEqual(u.host, 'localhost:8080')
+      assert.strictEqual(u.pathname, '/auth/realms/my/protocol/openid-connect/registrations')
 
       const query = searchParams(u)
       log(query)
@@ -203,7 +151,6 @@ describe('endpoints', function () {
     })
 
     it('shall return url with pkce challenge', async function () {
-      const authServerUrl = 'https://example.com/auth'
       const options = {
         redirectUri: location.href,
         responseMode: 'fragment',
@@ -211,8 +158,8 @@ describe('endpoints', function () {
         pkceMethod: 'S256',
         pkce
       }
-      const ep = endpoints(authServerUrl)
       const cb = new Callback(options)
+      ep.callback = cb
       const url = await ep.createLoginUrl(options, cb)
 
       const u = new URL(url)
@@ -221,8 +168,8 @@ describe('endpoints', function () {
       assert.ok(state, 'shall have state param')
       assert.ok(cb._store.get(state), 'should get state from callback store')
 
-      assert.strictEqual(u.host, 'example.com')
-      assert.strictEqual(u.pathname, '/auth/protocol/openid-connect/auth')
+      assert.strictEqual(u.host, 'localhost:8080')
+      assert.strictEqual(u.pathname, '/auth/realms/my/protocol/openid-connect/auth')
 
       const query = searchParams(u)
       query.state = query.state && '**'
@@ -241,15 +188,21 @@ describe('endpoints', function () {
   })
 
   describe('createRegisterUrl', function () {
+    let ep
+
+    before(function () {
+      const serverUrl = 'http://localhost:8080/auth/realms/my'
+      ep = endpoints(serverUrl, wellKnownOidcKeycloak)
+    })
+
     it('shall return default url', async function () {
-      const authServerUrl = 'https://example.com/auth'
       const options = {
         redirectUri: location.href,
         responseMode: 'fragment'
       }
-      const ep = endpoints(authServerUrl)
       const cb = new Callback(options)
-      const url = await ep.createRegisterUrl(options, cb)
+      ep.callback = cb
+      const url = await ep.createRegisterUrl(options)
 
       const u = new URL(url)
       const state = u.searchParams.get('state')
@@ -257,8 +210,8 @@ describe('endpoints', function () {
       assert.ok(state, 'shall have state param')
       assert.ok(cb._store.get(state), 'should get state from callback store')
 
-      assert.strictEqual(u.host, 'example.com')
-      assert.strictEqual(u.pathname, '/auth/protocol/openid-connect/registrations')
+      assert.strictEqual(u.host, 'localhost:8080')
+      assert.strictEqual(u.pathname, '/auth/realms/my/protocol/openid-connect/registrations')
 
       const query = searchParams(u)
       query.state = query.state && '**'
@@ -273,19 +226,24 @@ describe('endpoints', function () {
   })
 
   describe('createLogoutUrl', function () {
+    let ep
+
+    before(function () {
+      const serverUrl = 'http://localhost:8080/auth/realms/my'
+      ep = endpoints(serverUrl, wellKnownOidcKeycloak)
+    })
+
     it('shall return url', async function () {
-      const authServerUrl = 'https://example.com/auth'
       const options = {
         redirectUri: location.href
       }
-      const ep = endpoints(authServerUrl)
       const url = await ep.createLogoutUrl(options)
 
       log(url)
       const u = new URL(url)
 
-      assert.strictEqual(u.host, 'example.com')
-      assert.strictEqual(u.pathname, '/auth/protocol/openid-connect/logout')
+      assert.strictEqual(u.host, 'localhost:8080')
+      assert.strictEqual(u.pathname, '/auth/realms/my/protocol/openid-connect/logout')
 
       const query = searchParams(u)
 
@@ -295,19 +253,17 @@ describe('endpoints', function () {
     })
 
     it('shall use post logout redirect uri', async function () {
-      const authServerUrl = 'https://example.com/auth'
       const options = {
         redirectUri: location.href,
         postLogoutRedirectUri: location.href + 'logged-out'
       }
-      const ep = endpoints(authServerUrl)
       const url = await ep.createLogoutUrl(options)
 
       log(url)
       const u = new URL(url)
 
-      assert.strictEqual(u.host, 'example.com')
-      assert.strictEqual(u.pathname, '/auth/protocol/openid-connect/logout')
+      assert.strictEqual(u.host, 'localhost:8080')
+      assert.strictEqual(u.pathname, '/auth/realms/my/protocol/openid-connect/logout')
 
       const query = searchParams(u)
 
@@ -318,19 +274,24 @@ describe('endpoints', function () {
   })
 
   describe('createAccountUrl', function () {
+    let ep
+
+    before(function () {
+      const serverUrl = 'http://localhost:8080/auth/realms/my'
+      ep = endpoints(serverUrl, wellKnownOidcKeycloak)
+    })
+
     it('shall return default url', async function () {
-      const authServerUrl = 'https://example.com/auth'
       const options = {
         clientId: 'my-client',
         redirectUri: location.href
       }
-      const ep = endpoints(authServerUrl)
       const url = await ep.createAccountUrl(options)
 
       const u = new URL(url)
 
-      assert.strictEqual(u.host, 'example.com')
-      assert.strictEqual(u.pathname, '/auth/account')
+      assert.strictEqual(u.host, 'localhost:8080')
+      assert.strictEqual(u.pathname, '/auth/realms/my/account')
 
       const query = searchParams(u)
 
