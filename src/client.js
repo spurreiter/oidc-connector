@@ -1,13 +1,25 @@
+/*!
+Copyright 2016 Red Hat, Inc. and/or its affiliates and other contributors.
+Copyright 2020 spurreiter
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+*/
+
 import { Adapter } from './adapter/default.js'
 import { Tokens } from './tokens.js'
 import { endpoints } from './endpoints.js'
 
 import {
   Callback,
-  checkSsoSilently,
+  checkSilentLogin,
   createPromise,
   debouncePromises,
   EventEmitter,
+  get,
   initOptions,
   loadConfig,
   StatusIframe,
@@ -15,9 +27,9 @@ import {
 } from './utils/index.js'
 
 import {
-  STANDARD,
   IMPLICIT,
-  NONE,
+  LOGIN,
+  STANDARD,
   TYPE_URLENCODED
 } from './constants.js'
 
@@ -36,27 +48,27 @@ export class Client extends EventEmitter {
   }
 
   async init () {
-    const { log } = this.options
-    const {
-      serverUrl,
-      clientId,
-      oidcConfig
-    } = await loadConfig(this.options)
-    this.options.clientId = clientId
-    this.endpoints = endpoints(serverUrl, oidcConfig, this.callback)
-    this.statusIframe = new StatusIframe(this)
-    this.adapter.initialize(this)
-    this.options.redirectUri = this.adapter.redirectUri()
-    log.info('oidcConfig loaded %o', oidcConfig)
-    return this._processInit()
-      .then(() => {
-        this._schedule()
-        return this._handleToken()
-      })
-      .catch(err => {
-        this._handleError(err)
-        throw err
-      })
+    try {
+      const { log } = this.options
+      const {
+        serverUrl,
+        clientId,
+        oidcConfig
+      } = await loadConfig(this.options)
+      this.options.clientId = clientId
+      this.endpoints = endpoints(serverUrl, oidcConfig, this.callback)
+      this.statusIframe = new StatusIframe(this)
+      this.adapter.initialize(this)
+      this.options.redirectUri = this.adapter.redirectUri()
+      log.info('oidcConfig loaded %o', oidcConfig)
+
+      await this._processInit()
+      this._schedule()
+      return this._handleToken()
+    } catch (err) {
+      this._handleError(err)
+      return Promise.reject(err)
+    }
   }
 
   async _processInit () {
@@ -78,36 +90,36 @@ export class Client extends EventEmitter {
   }
 
   async _processWithTokens () {
+    let minValidity = -1
+
     if (this.options.statusIframe) {
       await this.statusIframe.setup()
-      const unchanged = await this.statusIframe.check()
-      if (unchanged) {
-        this.statusIframe.schedule()
-        return this._refresh().then(tokens => tokens || this.tokens.getTokens())
-      } else {
+      const unchanged = await this.statusIframe.check() // may throw on error
+      if (unchanged === false) {
         this._handleLogout()
         return Promise.reject(new Error('changed session'))
+      } else {
+        this.statusIframe.schedule()
+        minValidity = undefined
       }
-    } else {
-      return this._refresh(-1)
     }
+
+    return this._refresh(minValidity)
+      .then(tokens => tokens || this.tokens.getTokens()) // tokens may not be present if not yet expired
   }
 
   async _processCallback (oauth) {
     const { flow, clientId } = this.options
-    const { code, error, prompt } = oauth
+    const { code, error } = oauth
 
     if (oauth.kc_action_status) {
       this.emit('action', { status: oauth.kc_action_status })
     }
 
     if (error) {
-      if (prompt !== NONE) {
-        const err = new Error(error)
-        err.description = oauth.error_description
-        return Promise.reject(err)
-      }
-      return
+      const err = new Error(error)
+      err.description = oauth.error_description
+      return Promise.reject(err)
     }
 
     if ((flow !== STANDARD) && (oauth.access_token || oauth.id_token)) {
@@ -132,7 +144,11 @@ export class Client extends EventEmitter {
         this.statusIframe.schedule()
         return this._authSuccess(tokenResponse, oauth)
       }
-      return Promise.reject(new Error('auth error'))
+      const error = await res.json()
+      const err = new Error(get(error, 'error', 'auth error'))
+      err.description = get(error, 'error_description')
+      err.status = res.status
+      return Promise.reject(err)
     }
   }
 
@@ -153,15 +169,14 @@ export class Client extends EventEmitter {
       promise.reject(new Error('no refresh token'))
       return promise
     }
-    await this.statusIframe.check()
 
     let needsRefresh = false
     if (minValidity === -1) {
       needsRefresh = true
-      log.info('Refreshing token: forced refresh')
+      log.info('forced refresh')
     } else if (!tokens.tokenParsed || tokens.isTokenExpired(minValidity)) {
       needsRefresh = true
-      log.info('Refreshing token: token expired')
+      log.info('token expired')
     }
 
     if (!needsRefresh) {
@@ -233,18 +248,31 @@ export class Client extends EventEmitter {
     }
   }
 
-  async getToken () {
-    return this._refresh().then(() => this.tokens.token)
+  getTokens () {
+    return this.tokens.getTokens()
   }
 
-  async login () {
-    return this.adapter.login()
+  async bearerToken () {
+    const { token, refreshToken } = this.tokens
+    const isExpired = this.tokens.isTokenExpired()
+    if ((!token || isExpired) && refreshToken) {
+      await this._refresh()
+      return this.tokens.token
+    }
+    return !isExpired && token
+  }
+
+  async login (opts = {}) {
+    opts.prompt = opts.prompt || LOGIN
+    return this.adapter.login(opts)
   }
 
   async silentLogin () {
-    const { silentCheckSsoRedirectUri } = this.options
-    if (!silentCheckSsoRedirectUri) throw new Error('no silentCheckSsoRedirectUri')
-    return checkSsoSilently(this)
+    const { silentLoginRedirectUri } = this.options
+    if (!silentLoginRedirectUri) {
+      return Promise.reject(new Error('no silentLoginRedirectUri'))
+    }
+    return checkSilentLogin(this)
       .then(oauth => this._processCallback(oauth))
       .then(() => {
         this._schedule()
@@ -253,9 +281,29 @@ export class Client extends EventEmitter {
   }
 
   async logout () {
+    const { idToken } = this.getTokens()
+    this.statusIframe.clearSchedule()
     clearTimeout(this._expiryTimerId)
     this.tokens.clearTokens()
-    return this.adapter.logout()
+    return this.adapter.logout({ idToken })
+  }
+
+  async userinfo () {
+    const url = this.endpoints.userinfo()
+    const token = await this.bearerToken()
+    const res = await fetch(url, {
+      headers: {
+        Accept: 'application/json',
+        Authorization: `Bearer ${token}`
+      }
+    })
+    if (res.status === 200) {
+      return res.json()
+    }
+    const err = new Error('userinfo failed')
+    err.status = res.status
+    err.response = res
+    return Promise.reject(err)
   }
 
   async register () {
@@ -270,7 +318,6 @@ export class Client extends EventEmitter {
 async function fetchToken (url, query) {
   return fetch(url, {
     method: 'POST',
-    credentials: 'include',
     headers: { 'Content-Type': TYPE_URLENCODED, Accept: 'application/json' },
     body: urlEncoded(query)
   })

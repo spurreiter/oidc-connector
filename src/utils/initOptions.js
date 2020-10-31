@@ -1,5 +1,6 @@
 import { get } from './get.js'
 import { absoluteUrl } from './urls.js'
+import { pkce } from './pkce.js'
 
 import {
   FRAGMENT,
@@ -28,6 +29,17 @@ const number = val => isNaN(val) ? undefined : val
 
 const func = val => typeof val === 'function' ? val : undefined
 
+const setResponseType = ({ responseType = '', flow }) => {
+  const allowed = [NONE, CODE, TOKEN, ID_TOKEN]
+  const types = responseType.split(' ').reduce((types, type) => {
+    if (allowed.indexOf(type) !== -1) {
+      types.push(type)
+    }
+    return types
+  }, flow === IMPLICIT ? [] : [CODE])
+  return [...new Set(types)].join(' ')
+}
+
 export function initOptions (options = {}) {
   const log = {
     info: set(func(get(options, 'log.info', get(options, 'log.log'))), function () {}),
@@ -43,14 +55,29 @@ export function initOptions (options = {}) {
     useStatusIframe: set(options.useStatusIframe, true),
     statusIframeInterval: set(number(options.statusIframeInterval), 5),
     responseMode: set(options.responseMode, [FRAGMENT, QUERY]),
-    responseType: set(options.responseType, (
-      [[CODE], [ID_TOKEN, TOKEN], [CODE, ID_TOKEN, TOKEN]].map(a => a.join(' '))
-    )),
+    responseType: setResponseType(options),
     flow: set(options.flow, [STANDARD, IMPLICIT, HYBRID]),
     prompt: set(options.prompt, [NONE, LOGIN]),
     minValidity: set(number(options.minValidity), 15),
     expiryInterval: set(number(options.expiryInterval), 5),
+    pkce: set(func(options.pkce), pkce),
     log
+  }
+
+  // make url point to a real host
+  const s = 'silentLoginRedirectUri'
+  if (opts[s]) {
+    opts[s] = absoluteUrl(opts[s])
+  }
+
+  // test if pkceMethod is supported
+  if (opts.pkce && opts.pkceMethod) {
+    try {
+      opts.pkce(opts.pkceMethod)
+    } catch (e) {
+      opts.log.error('pkceMethod %s not supported', opts.pkceMethod)
+      opts.pkceMethod = undefined
+    }
   }
 
   return opts

@@ -1,6 +1,8 @@
+import { _globalThis } from './globalThis.js'
+
 export function genRandomData (len) {
   // use web crypto APIs if possible
-  const crypto = window.crypto || window.msCrypto
+  const crypto = _globalThis.crypto || _globalThis.msCrypto
   if (crypto && crypto.getRandomValues) {
     const array = new Uint8Array(len)
     crypto.getRandomValues(array)

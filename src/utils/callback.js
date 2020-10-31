@@ -23,11 +23,13 @@ import {
   ERROR_URI
 } from '../constants.js'
 
-const PARAMS = {
-  [STANDARD]: [CODE, STATE, SESSION_STATE, KC_ACTION_STATUS],
-  [IMPLICIT]: [ACCESS_TOKEN, TOKEN_TYPE, ID_TOKEN, STATE, SESSION_STATE, EXPIRES_IN, KC_ACTION_STATUS],
-  [HYBRID]: [ACCESS_TOKEN, ID_TOKEN, CODE, STATE, SESSION_STATE, KC_ACTION_STATUS]
-}
+// const PARAMS = {
+//   [STANDARD]: [CODE, STATE, SESSION_STATE, KC_ACTION_STATUS],
+//   [IMPLICIT]: [CODE, ACCESS_TOKEN, TOKEN_TYPE, ID_TOKEN, STATE, SESSION_STATE, EXPIRES_IN, KC_ACTION_STATUS],
+//   [HYBRID]: [CODE, ACCESS_TOKEN, ID_TOKEN, STATE, SESSION_STATE, KC_ACTION_STATUS]
+// }
+
+const PARAMS = [CODE, ACCESS_TOKEN, TOKEN_TYPE, ID_TOKEN, STATE, SESSION_STATE, EXPIRES_IN, KC_ACTION_STATUS]
 
 export class Callback {
   constructor (options) {
@@ -48,21 +50,24 @@ export class Callback {
       return
     }
 
+    this.log.info('callback parsed to %o', oauth)
+
     const oauthState = this._store.get(oauth.state)
 
     if (oauthState) {
       oauth.valid = true
+      oauth.pkceCodeVerifier = oauthState.pkceCodeVerifier
+      oauth.prompt = oauthState.prompt
       oauth.redirectUri = oauthState.redirectUri
       oauth.storedNonce = oauthState.nonce
-      oauth.prompt = oauthState.prompt
-      oauth.pkceCodeVerifier = oauthState.pkceCodeVerifier
     }
 
     return oauth
   }
 
   _parseUrl (url) {
-    let supportedParams = PARAMS[this._flow] || []
+    // let supportedParams = PARAMS[this._flow] || []
+    let supportedParams = PARAMS
     supportedParams = supportedParams.concat([
       RESPONSE_MODE,
       ERROR,
@@ -92,16 +97,14 @@ export class Callback {
       oauth.newUrl = uri.toString()
     }
 
-    if (oauth) {
-      if ((this._flow === STANDARD || this._flow === HYBRID) &&
-        oauth.state && ((oauth.code || oauth.error))) {
+    if (oauth && oauth.state) {
+      if ((this._flow === STANDARD || this._flow === HYBRID) && (oauth.code || oauth.error)) {
         return oauth
-      } else if (this._flow === IMPLICIT &&
-        oauth.state && (oauth.access_token || oauth.error)) {
+      } else if (this._flow === IMPLICIT && (oauth.access_token || oauth.error)) {
         return oauth
       }
     }
 
-    this.log.error('bad parameters %o for %s flow', oauth, this._flow)
+    this.log.error('bad params %o for %s flow', oauth, this._flow)
   }
 }

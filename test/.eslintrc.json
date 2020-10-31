@@ -1,7 +1,6 @@
 {
   "env": {
-    "browser": true,
-    "es2020": true
+    "mocha": true
   },
   "extends": [
     "standard"
@@ -14,6 +13,6 @@
     "ecmaVersion": 2020
   },
   "rules": {
-    "no-console": "error"
+    "no-console": "warn"
   }
 }

@@ -5,13 +5,14 @@ const now = () => Math.ceil(new Date().getTime() / 1000)
 const toNumber = (num, def) => !isNaN(Number(num)) ? Number(num) : def
 
 export class Tokens {
-  constructor ({ log, useNonce, useLocalStorage = true } = {}) {
+  constructor ({ log, useNonce, minValidity, useLocalStorage = true } = {}) {
     this.log = log
     this._useNonce = useNonce
     this._authenticated = false
     this._timeSkew = 0
     this._expiresAt = 0
     this._store = new Store(useLocalStorage)
+    this._minValidity = minValidity
   }
 
   get authenticated () {
@@ -32,7 +33,7 @@ export class Tokens {
     token = token || ls.access_token
     refreshToken = refreshToken || ls.refresh_token
 
-    if (token && refreshToken) {
+    if (token) {
       const tokens = {
         access_token: token,
         refresh_token: refreshToken,
@@ -65,9 +66,9 @@ export class Tokens {
         this.refreshTokenParsed = decodeToken(refreshToken)
       } catch (e) {
         // token may be a oauth2 only token
-        this.refreshTokenParsed = {}
+        delete this.refreshTokenParsed
       }
-      this.log.info('refresh token set')
+      this.log.info('refresh token set %o', this.refreshTokenParsed)
     } else {
       delete this.refreshToken
       delete this.refreshTokenParsed
@@ -79,7 +80,7 @@ export class Tokens {
       this.idToken = idToken
       this._store.idToken(idToken)
       this.idTokenParsed = decodeToken(idToken)
-      this.log.info('id token set')
+      this.log.info('id token set %o', this.idTokenParsed)
     } else {
       delete this.idToken
       delete this.idTokenParsed
@@ -94,9 +95,9 @@ export class Tokens {
         this.tokenParsed = decodeToken(token)
       } catch (e) {
         // token may be a oauth2 only token
-        this.tokenParsed = {}
+        delete this.tokenParsed
       }
-      this.log.info('token set')
+      this.log.info('token set %o', this.tokenParsed)
       const iat = toNumber(
         get(this.tokenParsed, 'iat') || get(this.idTokenParsed, 'iat'),
         now() - 1
@@ -158,7 +159,7 @@ export class Tokens {
     return this._expiresAt - now()
   }
 
-  isTokenExpired (minValidity) {
+  isTokenExpired (minValidity = this._minValidity) {
     let expiresIn = this.expiresIn()
     if (!isNaN(minValidity)) {
       expiresIn -= minValidity
@@ -180,10 +181,9 @@ export class Tokens {
       refreshTokenParsed,
       idTokenParsed
     } = this
+    const verify = obj => obj && obj.nonce && obj.nonce !== storedNonce
     const invalid = _useNonce &&
-      ((tokenParsed && tokenParsed.nonce !== storedNonce) ||
-       (refreshTokenParsed && refreshTokenParsed.nonce !== storedNonce) ||
-       (idTokenParsed && idTokenParsed.nonce !== storedNonce))
+      (verify(tokenParsed) || verify(refreshTokenParsed) || verify(idTokenParsed))
     if (invalid) {
       this.clearTokens()
     }

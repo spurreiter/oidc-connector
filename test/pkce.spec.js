@@ -1,6 +1,7 @@
 import jsdom from 'jsdom-global'
 import assert from 'assert'
-import { pkce } from '../src/pkce.js'
+import { pkce } from '../src/utils/pkce.js'
+import './support/shims.js'
 
 describe('pkce', function () {
   before(function () {

@@ -4,14 +4,14 @@ import { NONE } from '../constants.js'
 
 const MESSAGE = 'message'
 
-export async function checkSsoSilently (client) {
+export async function checkSilentLogin (client) {
   const { callback, endpoints, options } = client
   const promise = createPromise()
 
   const src = await endpoints.createLoginUrl({
     ...options,
     prompt: NONE,
-    redirectUri: options.silentCheckSsoRedirectUri
+    redirectUri: options.silentLoginRedirectUri
   })
   const iframe = createIframe({ src, title: 'oidc-silent-check-sso' })
 

@@ -13,7 +13,7 @@ const testLog = (_log) => {
 
 describe('utils/initOptions', function () {
   it('shall apply default options', function () {
-    const { log: _log, ...opts } = initOptions()
+    const { log: _log, pkce, ...opts } = initOptions()
     log(opts)
 
     testLog(_log)
@@ -35,7 +35,7 @@ describe('utils/initOptions', function () {
   })
 
   it('shall fallback to default options', function () {
-    const { log: _log, ...opts } = initOptions({
+    const { log: _log, pkce, ...opts } = initOptions({
       useNonce: '##',
       useStatusIframe: '##',
       statusIframeInterval: '##',

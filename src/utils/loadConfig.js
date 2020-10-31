@@ -8,26 +8,45 @@ export async function loadConfig (config) {
     return Promise.reject(new Error('clientId missing'))
   }
 
-  const { url, realm, ..._config } = config
-  _config.serverUrl = clearUrl(
-    realm
-      ? `${url}/realms/${realm}`
-      : url
+  const {
+    url,
+    realm,
+    userRegistrationEndpoint,
+    userAccountEndpoint,
+    ..._config
+  } = config
+  _config.serverUrl = clearUrl(realm
+    ? `${url}/realms/${realm}`
+    : url
   )
 
-  if (!_config.oidcConfig) {
-    const oidcConfigUrl = `${_config.serverUrl}/.well-known/openid-configuration`
-
-    return fetch(oidcConfigUrl, {
-      headers: { Accept: 'application/json' }
-    }).then(res => (res.status === 200)
-      ? res.json()
-      : Promise.reject(new Error(`error loading oidcConfig ${oidcConfigUrl}`))
-    ).then(oidcConfig => ({
-      ..._config,
-      oidcConfig
-    }))
+  let oidcConfigUrl = `${_config.serverUrl}/.well-known/openid-configuration`
+  if (typeof _config.oidcConfig === 'string') {
+    oidcConfigUrl = _config.oidcConfig
+    _config.oidcConfig = null
   }
 
-  return Promise.resolve(_config)
+  const mergeC = (c) => ({
+    ...c,
+    userRegistrationEndpoint,
+    userAccountEndpoint
+  })
+
+  if (!_config.oidcConfig) {
+    const res = await fetch(oidcConfigUrl, {
+      headers: { Accept: 'application/json' }
+    })
+    if (res.status !== 200) {
+      return Promise.reject(new Error(`error loading oidcConfig ${oidcConfigUrl}`))
+    }
+    const oidcConfig = await res.json()
+    return {
+      ..._config,
+      oidcConfig: mergeC(oidcConfig)
+    }
+  } else {
+    _config.oidcConfig = mergeC(config.oidcConfig)
+  }
+
+  return _config
 }

@@ -1,9 +1,9 @@
 import jsdom from 'jsdom-global'
 import assert from 'assert'
-import { Callback } from '../src/utils/index.js'
+import { Callback, pkce } from '../src/utils/index.js'
 import { endpoints } from '../src/endpoints.js'
-import { pkce } from '../src/pkce.js'
 import debug from 'debug'
+import './support/shims.js'
 
 import { wellKnownOidcKeycloak } from './fixtures/index.js'
 
@@ -237,7 +237,7 @@ describe('endpoints', function () {
       const options = {
         redirectUri: location.href
       }
-      const url = await ep.createLogoutUrl(options)
+      const url = await ep.createLogoutUrl(options, { idToken: 'idtoken' })
 
       log(url)
       const u = new URL(url)
@@ -248,7 +248,8 @@ describe('endpoints', function () {
       const query = searchParams(u)
 
       assert.deepStrictEqual(query, {
-        redirect_uri: 'https://example.org/'
+        id_token_hint: 'idtoken',
+        post_logout_redirect_uri: 'https://example.org/'
       })
     })
 
@@ -257,7 +258,7 @@ describe('endpoints', function () {
         redirectUri: location.href,
         postLogoutRedirectUri: location.href + 'logged-out'
       }
-      const url = await ep.createLogoutUrl(options)
+      const url = await ep.createLogoutUrl(options, { idToken: 'idtoken' })
 
       log(url)
       const u = new URL(url)
@@ -268,7 +269,8 @@ describe('endpoints', function () {
       const query = searchParams(u)
 
       assert.deepStrictEqual(query, {
-        redirect_uri: 'https://example.org/logged-out'
+        id_token_hint: 'idtoken',
+        post_logout_redirect_uri: 'https://example.org/logged-out'
       })
     })
   })

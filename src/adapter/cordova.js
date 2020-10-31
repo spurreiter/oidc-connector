@@ -36,11 +36,11 @@ export class AdapterCordova {
     return 'http://localhost'
   }
 
-  async login () {
+  async login (opts) {
     this._isInitialized()
     const promise = createPromise()
     const { client } = this
-    const url = await this.endpoints.createLoginUrl(this.options)
+    const url = await this.endpoints.createLoginUrl({ ...this.options, ...opts })
     const ref = openUrl(url, this.cordovaOpts)
     let completed = false
 
@@ -102,10 +102,10 @@ export class AdapterCordova {
     return promise
   }
 
-  async logout () {
+  async logout ({ idToken }) {
     this._isInitialized()
     const promise = createPromise()
-    const url = await this.endpoints.createLogoutUrl(this.options)
+    const url = await this.endpoints.createLogoutUrl(this.options, { idToken })
     const ref = openUrl(url, 'location=no,hidden=yes')
 
     let loaderror
@@ -142,7 +142,7 @@ export class AdapterCordova {
 
   async account () {
     this._isInitialized()
-    const url = await this.endpoints.createAccountUrl()
+    const url = await this.endpoints.createAccountUrl(this.options)
     if (typeof url !== 'undefined') {
       const ref = openUrl(url, 'location=no')
       ref.addEventListener('loadstart', function (ev) {

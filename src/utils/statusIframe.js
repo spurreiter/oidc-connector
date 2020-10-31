@@ -31,7 +31,7 @@ export class StatusIframe {
     this.enabled = false
   }
 
-  async setup () {
+  setup () {
     if (this.iframe || !this.enabled) {
       return
     }
@@ -52,7 +52,7 @@ export class StatusIframe {
     }
     iframe.addEventListener('load', handleLoad)
 
-    const messageCallback = (event) => {
+    const handleMessage = (event) => {
       if ((event.origin !== this.iframeOrigin) ||
           (this.iframe.contentWindow !== event.source)) {
         return
@@ -72,14 +72,18 @@ export class StatusIframe {
       }
     }
 
-    window.addEventListener('message', messageCallback, false)
+    window.addEventListener('message', handleMessage, false)
 
     return promise
   }
 
+  clearSchedule () {
+    clearTimeout(this.timerId)
+  }
+
   schedule () {
     if (this.enabled && this.client.tokens.authenticated) {
-      setTimeout(async () => {
+      this.timerId = setTimeout(async () => {
         try {
           const unchanged = await this.check()
           if (unchanged) {
@@ -92,7 +96,7 @@ export class StatusIframe {
     }
   }
 
-  async check () {
+  check () {
     if (!this.enabled || !this.iframe || !this.iframeOrigin) {
       return
     }

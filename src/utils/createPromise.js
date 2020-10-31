@@ -19,12 +19,12 @@ export function debouncePromises () {
   }
   const resolveAll = (result) => {
     while (queue.length) {
-      queue.pop().resolve(result)
+      queue.shift().resolve(result)
     }
   }
   const rejectAll = (err) => {
     while (queue.length) {
-      queue.pop().reject(err)
+      queue.shift().reject(err)
     }
   }
 

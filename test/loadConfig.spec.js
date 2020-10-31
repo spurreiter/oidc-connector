@@ -3,7 +3,7 @@ import assert from 'assert'
 import http from 'http'
 import fetchPoly from 'whatwg-fetch'
 import { loadConfig } from '../src/utils/index.js'
-import { wellKnownOidcKeycloak } from './fixtures/index.js'
+import { wellKnownOidcKeycloak, wellKnownOidcGoogle } from './fixtures/index.js'
 import debug from 'debug'
 
 const log = debug('test')
@@ -31,6 +31,8 @@ describe('utils/loadConfig', function () {
         res.body = JSON.stringify(wellKnownOidcKeycloak)
       } else if (url === '/auth/.well-known/openid-configuration') {
         res.body = JSON.stringify(wellKnownOidcKeycloak)
+      } else if (url === '/other/.well-known/openid-configuration') {
+        res.body = JSON.stringify(wellKnownOidcGoogle)
       } else {
         res.statusCode = 404
       }
@@ -51,7 +53,11 @@ describe('utils/loadConfig', function () {
     assert.deepStrictEqual(config, {
       serverUrl: `http://localhost:${port}/auth/realms/my`,
       clientId: 'local-server',
-      oidcConfig: wellKnownOidcKeycloak
+      oidcConfig: {
+        ...wellKnownOidcKeycloak,
+        userRegistrationEndpoint: undefined,
+        userAccountEndpoint: undefined
+      }
     })
   })
 
@@ -67,7 +73,7 @@ describe('utils/loadConfig', function () {
     })
   })
 
-  it('shall use oidcProvider from object', async function () {
+  it('shall use oidcConfig from object', async function () {
     const config = await loadConfig({
       url: `http://localhost:${port}/auth`,
       clientId: 'local-server',
@@ -76,7 +82,28 @@ describe('utils/loadConfig', function () {
     assert.deepStrictEqual(config, {
       serverUrl: `http://localhost:${port}/auth`,
       clientId: 'local-server',
-      oidcConfig: wellKnownOidcKeycloak
+      oidcConfig: {
+        ...wellKnownOidcKeycloak,
+        userRegistrationEndpoint: undefined,
+        userAccountEndpoint: undefined
+      }
+    })
+  })
+
+  it('shall load oidcConfig from string', async function () {
+    const config = await loadConfig({
+      url: `http://localhost:${port}/auth`,
+      clientId: 'local-server',
+      oidcConfig: `http://localhost:${port}/other/.well-known/openid-configuration`
+    })
+    assert.deepStrictEqual(config, {
+      serverUrl: `http://localhost:${port}/auth`,
+      clientId: 'local-server',
+      oidcConfig: {
+        ...wellKnownOidcGoogle,
+        userRegistrationEndpoint: undefined,
+        userAccountEndpoint: undefined
+      }
     })
   })
 

@@ -1,6 +1,4 @@
 node_modules/
 coverage/
-*.tgz
-*.log
-.*
-NOTES.md
+dist/
+esm/

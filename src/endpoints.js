@@ -35,7 +35,8 @@ export class Endpoints {
       idpHint,
       action,
       locale,
-      pkceMethod
+      pkceMethod,
+      authorizationParams
     } = options
 
     const doRegister = action === 'register'
@@ -68,6 +69,7 @@ export class Endpoints {
     }
 
     const query = {
+      ...authorizationParams,
       client_id: clientId,
       redirect_uri: redirectUri,
       state: state,
@@ -94,7 +96,7 @@ export class Endpoints {
     }
 
     this.callback.store(callbackState)
-    console.log(baseUrl, query)
+
     return createUrl(baseUrl, query)
   }
 
@@ -102,11 +104,15 @@ export class Endpoints {
     return this.createLoginUrl({ ...options, action: 'register' })
   }
 
-  async createLogoutUrl (options) {
+  async createLogoutUrl (options, { idToken }) {
     const { redirectUri, postLogoutRedirectUri } = options
-    return createUrl(this.logout(), {
-      redirect_uri: postLogoutRedirectUri || redirectUri
-    })
+    const url = this.logout()
+    if (!url) throw new Error('no end_session_endpoint')
+    const query = {
+      post_logout_redirect_uri: postLogoutRedirectUri || redirectUri,
+      id_token_hint: idToken
+    }
+    return createUrl(url, query)
   }
 
   async createAccountUrl (options) {
@@ -132,7 +138,8 @@ export class Endpoints {
 
   logout () {
     // may be undefined
-    return this.oidcConfig.end_session_endpoint
+    const url = this.oidcConfig.end_session_endpoint
+    return url
   }
 
   checkSessionIframe () {
@@ -140,40 +147,29 @@ export class Endpoints {
     return this.oidcConfig.check_session_iframe
   }
 
-  /*
-  checkThirdPartyCookiesIframe () {
-    // not defined in standard OIDC mode
-    let url = this.oidcConfig.check_3pcookies_iframe
-    if (!url && this._maybeKeycloak()) {
-      url = this.authorize().replace(/\/[^/]+$/, '/3p-cookies/step1.html')
-    }
+  userinfo () {
+    // may be undefined
+    const url = this.oidcConfig.userinfo_endpoint
+    if (!url) throw new Error('no userinfo_endpoint')
     return url
   }
-  */
 
   register () {
-    // not defined in standard OIDC mode
-    let url = this.oidcConfig.register_endpoint
+    let url = this.oidcConfig.userRegistrationEndpoint
     if (!url && this._maybeKeycloak()) {
       url = this.authorize().replace(/\/[^/]+$/, '/registrations')
     }
-    if (!url) throw new Error('no register_endpoint')
+    if (!url) throw new Error('no register endpoint')
     return url
   }
 
   account () {
-    // not defined in standard OIDC mode
-    let url = this.oidcConfig.account_endpoint
+    let url = this.oidcConfig.userAccountEndpoint
     if (!url && this._maybeKeycloak()) {
       url = `${this.serverUrl}/account`
     }
-    if (!url) throw new Error('no account_endpoint')
+    if (!url) throw new Error('no account endpoint')
     return url
-  }
-
-  userinfo () {
-    // may be undefined
-    return this.oidcConfig.userinfo_endpoint
   }
 }
 

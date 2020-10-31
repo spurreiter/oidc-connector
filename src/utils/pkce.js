@@ -1,6 +1,5 @@
-import crypto from 'crypto-hash'
-
-import { genRandomData } from './utils/index.js'
+import { genRandomData } from './random.js'
+import { _globalThis } from './globalThis.js'
 
 const map = {
   '+': '-',
@@ -19,19 +18,26 @@ function uint8ArrayToString (arrUint8) {
 
 function genCodeVerifier (len) {
   const binary = uint8ArrayToString(genRandomData(len))
-  return window.btoa(binary).replace(RE_MAP, '').substring(0, len)
+  return _globalThis.btoa(binary).replace(RE_MAP, '').substring(0, len)
 }
 
 function base64Encode (hash) {
   const binary = uint8ArrayToString(new Uint8Array(hash))
-  const encoded = window.btoa(binary).replace(RE_MAP, m => map[m])
+  const encoded = _globalThis.btoa(binary).replace(RE_MAP, m => map[m])
   return encoded
+}
+
+function createHash (buffer, algorithm) {
+  if (typeof buffer === 'string') {
+    buffer = new _globalThis.TextEncoder().encode(buffer)
+  }
+  return _globalThis.crypto.subtle.digest(algorithm, buffer)
 }
 
 async function genPkceChallenge (pkceMethod, codeVerifier) {
   switch (pkceMethod) {
     case 'S256': {
-      const hash = await crypto.sha256(codeVerifier, { outputFormat: null })
+      const hash = await createHash(codeVerifier, 'SHA-256')
       return base64Encode(hash)
     }
     default:

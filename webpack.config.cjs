@@ -18,11 +18,11 @@ module.exports = {
   },
   devServer: {
     // host: '0.0.0.0',
-    port: 9000,
+    port: 8000,
     hot: true,
     contentBase: ['./dist', './test/html'],
     before: function (app) {
-      app.get('/silent-check-sso.html', (req, res) => {
+      app.get('/silent-login-check.html', (req, res) => {
         const html = '<html>\n' +
           '  <body>\n' +
           '    <script>\n' +

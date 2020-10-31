@@ -11,12 +11,14 @@ export class Adapter {
   }
 
   redirectUri () {
-    return this.options.redirectUri || location.href
+    const url = new URL(location.href)
+    url.search = url.hash = ''
+    return this.options.redirectUri || url.toString()
   }
 
-  async login () {
+  async login (opts) {
     this._isInitialized()
-    const url = await this.endpoints.createLoginUrl(this.options)
+    const url = await this.endpoints.createLoginUrl({ ...this.options, ...opts })
     window.location.replace(url)
   }
 
@@ -26,15 +28,15 @@ export class Adapter {
     window.location.replace(url)
   }
 
-  async logout () {
+  async logout ({ idToken }) {
     this._isInitialized()
-    const url = await this.endpoints.createLogoutUrl(this.options)
+    const url = await this.endpoints.createLogoutUrl(this.options, { idToken })
     window.location.replace(url)
   }
 
   async account () {
     this._isInitialized()
-    const url = await this.endpoints.createAccountUrl()
+    const url = await this.endpoints.createAccountUrl(this.options)
     if (url) {
       window.location.href = url
     } else {

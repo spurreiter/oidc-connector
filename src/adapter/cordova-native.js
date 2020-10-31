@@ -31,12 +31,12 @@ export class AdapterCordovaNative {
     return 'http://localhost'
   }
 
-  async login () {
+  async login (opts) {
     this._isInitialized()
     const promise = createPromise()
     const { client } = this
 
-    const url = await this.endpoints.createLoginUrl(this.options)
+    const url = await this.endpoints.createLoginUrl({ ...this.options, ...opts })
     openUrl(url, (event) => {
       const oauth = client.callback.parse(event.url)
       client._processCallback(oauth)
@@ -62,10 +62,10 @@ export class AdapterCordovaNative {
     return promise
   }
 
-  async logout () {
+  async logout ({ idToken }) {
     this._isInitialized()
     const promise = createPromise()
-    const url = await this.endpoints.createLogoutUrl(this.options)
+    const url = await this.endpoints.createLogoutUrl(this.options, { idToken })
 
     openUrl(url, (/* event */) => {
       this.client.tokens.clearTokens()
@@ -77,7 +77,7 @@ export class AdapterCordovaNative {
 
   async account () {
     this._isInitialized()
-    const url = await this.endpoints.createAccountUrl()
+    const url = await this.endpoints.createAccountUrl(this.options)
     if (typeof url !== 'undefined') {
       openUrl(url)
     } else {

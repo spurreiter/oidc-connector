@@ -31,7 +31,8 @@ function cookieExpiration (minutes) {
   return exp
 }
 
-function setCookie (key, value, expirationDate) {
+function setCookie (key, value, minutes) {
+  const expirationDate = cookieExpiration(minutes)
   const cookie = `${key}=${encodeURIComponent(value)}; expires=${expirationDate.toUTCString()}; `
   document.cookie = cookie
 }
@@ -47,11 +48,11 @@ export class CookieStorage {
   }
 
   setItem (key, value) {
-    setCookie(key, JSON.stringify(value), cookieExpiration(60))
+    setCookie(key, JSON.stringify(value), 60)
   }
 
   removeItem (key) {
-    setCookie(key, '', cookieExpiration(-60))
+    setCookie(key, '', -60)
   }
 
   clear () {

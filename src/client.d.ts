@@ -4,40 +4,16 @@ type PkceMethod = 'S256';
 
 type Url = string;
 
-/**
- * Standard data is taken from `.well-known/oidc-configuration` endpoint
- * non-standard settings can be named here.
- */
-interface OidcConfig {
-  /** issuer url shall be the same as `url` */
-  issuer?: Url;
-  /** certificates endpoint */
-  jwks_uri?: Url;
-  /** authorization endpoint */
-  authorization_endpoint?: Url;
-  /** token endpoint */
-  token_endpoint?: Url;
-  /** userinfo endpoint */
-  userinfo_endpoint?: Url;
-  /** logout endpoint */
-  end_session_endpoint?: Url;
-  /** session management endpoint */
-  check_session_iframe?: Url;
-  // --- non standard extensions ---
-  /** non-standard registration endpoint */
-  register_endpoint?: Url;
-  /** non-standard account endpoint */
-  account_endpoint?: Url;
-}
-
 interface Options {
   /**
-   * URL to the OIDC server
+   * URL to the OIDC server.
+   * This URL is used to locate the OIDC discovery document (typically found
+   * at /.well-known/openid-configuration), which specifies the provider's
+   * OAuth endpoints and public keys.
    */
   url: string;
   /**
-   * Name of the realm
-   * @example 'myrealm'
+   * Name of the realm (applies only to keycloak servers)
    */
   realm?: string;
   /**
@@ -53,6 +29,14 @@ interface Options {
    * if not specified than value from `redirectUri` is used.
    */
   postLogoutRedirectUri?: Url;
+  /**
+   * Replaces the settings which are usually loaded from
+   * `.well-known/openid-configuration`.
+   * Needs to follow the conventions defined in the standard.
+   * https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata
+   * If type is string than configuration is loaded from this url.
+   */
+  oidcConfig?: OidcConfig | string;
   /**
    * calls login on client initialization if no valid tokens are present
    * @default false
@@ -116,7 +100,7 @@ interface Options {
    */
   pkceMethod?: PkceMethod;
   /**
-   * external function which implements the PKCE
+   * external function which implements the PKCE challenge.
    * If not configured, PKCE will not be used.
    */
   pkce?: (pkceMethod: PkceMethod) => { codeVerifier: string, challenge: string };
@@ -148,17 +132,17 @@ interface Options {
    */
   idToken?: string;
   /**
-   * Specifies an uri to redirect to after silent check-sso.
-   * Silent check-sso will only happen, when this redirect uri is given and
-   * the specified uri is available whithin the application.
+   * Specifies an uri to redirect to after silent login was triggered.
+   * Silent login will only happen, when this redirect uri is given and the
+   * specified uri is available within the application.
+   * The url must deliver a page with the following content.
+   * ```
+   * <html><body><script>
+   *   parent.postMessage(location.href, location.origin);
+   * </script></body></html>
+   * ```
    */
-  silentCheckSsoRedirectUri?: string;
-  /**
-   * Specifies whether the silent check-sso should fallback to "non-silent"
-   * check-sso when 3rd party cookies are blocked by the browser. Defaults
-   * to true.
-   */
-  silentCheckSsoFallback?: boolean;
+  silentLoginRedirectUri?: string;
   /**
    * log output using `log.info` and `log.error`
    * example: {log: console, ...}
@@ -193,6 +177,40 @@ interface Options {
    * of the OIDC 1.0 specification.
    */
   locale?: string;
+  /**
+   * additional authorization paramaters added on authorization request
+   */
+  authorizationParams?: object;
+  /**
+   * registration endpoint for users
+   */
+  userRegistrationEndpoint?: Url;
+  /**
+   * account endpoint for users
+   */
+  userAccountEndpoint?: Url;
+}
+
+/**
+ * Standard data is taken from `.well-known/oidc-configuration` endpoint
+ * non-standard settings can be named here.
+ * @see https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata
+ */
+interface OidcConfig {
+  /** issuer url shall be the same as `url` */
+  issuer?: Url;
+  /** certificates endpoint */
+  jwks_uri?: Url;
+  /** authorization endpoint */
+  authorization_endpoint?: Url;
+  /** token endpoint */
+  token_endpoint?: Url;
+  /** userinfo endpoint */
+  userinfo_endpoint?: Url;
+  /** logout endpoint */
+  end_session_endpoint?: Url;
+  /** session management endpoint */
+  check_session_iframe?: Url;
 }
 
 /**

@@ -172,7 +172,8 @@ describe('utils/Callback', function () {
         response_mode: 'query',
         session_state: 'mysessionstate',
         state: 'teststate',
-        newUrl: 'http://example.org/?code=mycode&other=testother#other=hash'
+        code: 'mycode',
+        newUrl: 'http://example.org/?other=testother#other=hash'
       })
     })
 

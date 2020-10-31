@@ -115,7 +115,6 @@ const createToken = ({
     sub,
     nonce,
     session_state: state,
-    sid: state, // TODO verify
     at_hash,
     ...claims
   }
@@ -243,7 +242,7 @@ export function setup ({
 
     let isValidResponseType = false
     let url
-    const params = { state }
+    const params = { state, session_state: state } // we simply session_state here
 
     const { access_token, id_token } = getTokens(jwks, { issuer, aud, state, nonce, ...conf })
     if (response_type.includes('code')) {
@@ -319,6 +318,12 @@ export function setup ({
       res.type('html').end(viewSessionIframe)
     })
   }
+
+  app.get('/silent-login-check.html', (req, res) => {
+    res.type('html').end(`<html><body><script>
+      parent.postMessage(location.href, location.origin);
+    </script></body></html>`)
+  })
 
   return app
 }
