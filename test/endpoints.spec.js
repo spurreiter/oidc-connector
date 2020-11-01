@@ -73,7 +73,8 @@ describe('endpoints', function () {
     it('shall return default url', async function () {
       const options = {
         redirectUri: location.href,
-        responseMode: 'fragment'
+        responseMode: 'fragment',
+        scope: 'openid'
       }
       const cb = new Callback(options)
       ep.callback = cb
@@ -106,7 +107,7 @@ describe('endpoints', function () {
         responseMode: 'fragment',
         responseType: 'code',
         prompt: 'none',
-        scope: 'email test',
+        scope: 'openid email test',
         useNonce: true,
         maxAge: 12,
         loginHint: 'myself',
@@ -155,6 +156,7 @@ describe('endpoints', function () {
         redirectUri: location.href,
         responseMode: 'fragment',
         action: 'login',
+        scope: 'openid',
         pkceMethod: 'S256',
         pkce
       }
@@ -198,7 +200,8 @@ describe('endpoints', function () {
     it('shall return default url', async function () {
       const options = {
         redirectUri: location.href,
-        responseMode: 'fragment'
+        responseMode: 'fragment',
+        scope: 'openid'
       }
       const cb = new Callback(options)
       ep.callback = cb

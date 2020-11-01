@@ -1,7 +1,5 @@
 import { uuid4, createUrl } from './utils/index.js'
 
-const OPENID = 'openid'
-
 export class Endpoints {
   constructor (serverUrl, oidcConfig, callback) {
     if (!oidcConfig ||
@@ -28,7 +26,7 @@ export class Endpoints {
       responseType,
       redirectUri,
       prompt,
-      scope: scope_,
+      scope,
       useNonce,
       maxAge,
       loginHint,
@@ -56,18 +54,6 @@ export class Endpoints {
       ? this.register()
       : this.authorize()
 
-    const scope = (
-      !scope_
-        ? []
-        : typeof scope_ === 'string'
-          ? scope_.split(' ')
-          : scope_
-    ).filter(Boolean)
-
-    if (!scope.includes(OPENID)) {
-      scope.unshift(OPENID)
-    }
-
     const query = {
       ...authorizationParams,
       client_id: clientId,
@@ -75,7 +61,7 @@ export class Endpoints {
       state: state,
       response_mode: responseMode,
       response_type: responseType,
-      scope: scope.join(' '),
+      scope,
       prompt,
       max_age: maxAge,
       login_hint: loginHint,

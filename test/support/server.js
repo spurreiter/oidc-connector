@@ -1,4 +1,4 @@
-/* eslint camelcase: 0 */
+/* eslint camelcase: off, no-console: off */
 
 import crypto from 'crypto'
 import fs from 'fs'
@@ -12,7 +12,11 @@ import cookieParser from 'cookie-parser'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
+// --- setup
+
 const port = 3000
+const expiry = 30 // token expiry in seconds
+const maxRefresh = 2 // max number of refresh token exchanges
 
 // --- utils
 
@@ -60,7 +64,7 @@ class RsaKey {
         return payload
       }
     } catch (e) {
-      console.log(e)
+      console.error(e)
     }
   }
 }
@@ -92,16 +96,18 @@ const getWellKnownConfig = (paths, { origin = '' }) => {
   }, {})
 }
 
+const _now = () => (Date.now() / 1000 | 0)
+
 const createToken = ({
   issuer,
   aud,
   sub,
   nonce,
-  state,
+  session_state,
   at_hash,
-  exp = 300,
+  exp = expiry,
   typ = 'Bearer',
-  now = (Date.now() / 1000 | 0),
+  now = _now(),
   claims
 }) => {
   const payload = {
@@ -114,7 +120,7 @@ const createToken = ({
     typ,
     sub,
     nonce,
-    session_state: state,
+    session_state,
     at_hash,
     ...claims
   }
@@ -124,15 +130,18 @@ const createToken = ({
 const getTokens = (jwks, {
   issuer,
   aud,
-  state,
+  session_state,
   nonce,
-  exp,
+  exp = expiry,
+  expRefresh,
   claims
 }) => {
-  const access_token = jwks.signToken(createToken({ issuer, aud, state, nonce, exp, claims }))
+  const access_token = jwks.signToken(createToken({ issuer, aud, session_state, nonce, exp, claims }))
   const at_hash = hashAccessToken(access_token)
-  const id_token = jwks.signToken(createToken({ typ: 'ID', issuer, aud, at_hash, state, nonce, exp, claims }))
-  const refresh_token = jwks.signToken(createToken({ typ: 'Refresh', issuer, aud, state, nonce, exp: exp * 5 }))
+  const id_token = jwks.signToken(createToken({ typ: 'ID', issuer, aud, at_hash, session_state, nonce, exp, claims }))
+  const refresh_token = jwks.signToken(
+    createToken({ typ: 'Refresh', issuer, aud, session_state, nonce, exp: expRefresh || (exp * maxRefresh) })
+  )
   return {
     access_token,
     id_token,
@@ -155,9 +164,10 @@ function logger (req, res, next) {
   const start = Date.now()
   res.once('finish', () => {
     const ms = Date.now() - start
-    const { method, url } = req
+    const { method, url, body } = req
     const status = res.statusCode
-    console.log('%j', { status, method, url, ms })
+    const location = res.getHeader('location')
+    console.log('%s', JSON.stringify({ status, method, url, body, location, ms }))
   })
   next()
 }
@@ -206,10 +216,9 @@ export function setup ({
   const paths = getPaths({ baseUrl, noCheckSession })
   const oidcConfig = getWellKnownConfig(paths, { origin, noCheckSession })
   const app = express()
-  const nonces = new Map()
+  const codes = new Map()
 
   const conf = {
-    exp: 30,
     claims: {
       name: 'Alice',
       email: 'alice@wonder.land'
@@ -217,6 +226,10 @@ export function setup ({
   }
 
   app.use(logger, cors({ origin: true, credentials: true }))
+
+  app.get('/favicon.ico', (req, res) => {
+    res.end()
+  })
 
   app.get(paths.oidcUri, (req, res) => {
     res.type('json').json(oidcConfig)
@@ -227,7 +240,15 @@ export function setup ({
   })
 
   app.get(paths.authorizationEndpoint, (req, res) => {
-    const { response_type = '', /* scope, */ client_id: aud, redirect_uri, state, response_mode, nonce } = req.query
+    const {
+      response_type = '',
+      // scope,
+      client_id: aud,
+      redirect_uri,
+      state,
+      response_mode,
+      nonce
+    } = req.query
     const fragmentize = url => {
       if (response_mode === 'fragment') {
         const u = new URL(url)
@@ -238,15 +259,16 @@ export function setup ({
       return url
     }
 
-    state && nonces.set(state, nonce)
+    const session_state = uuid4()
 
     let isValidResponseType = false
     let url
-    const params = { state, session_state: state } // we simply session_state here
+    const params = { state, session_state: session_state } // we simplify session_state here
 
-    const { access_token, id_token } = getTokens(jwks, { issuer, aud, state, nonce, ...conf })
+    const { access_token, id_token } = getTokens(jwks, { ...conf, issuer, aud, session_state, nonce })
     if (response_type.includes('code')) {
       params.code = uuid4()
+      codes.set(params.code, { session_state, nonce })
       isValidResponseType = true
     }
     if (response_type.includes('token')) {
@@ -261,7 +283,7 @@ export function setup ({
 
     if (isValidResponseType) {
       url = fragmentize(createUrl(redirect_uri, params))
-      res.cookie('SESSION_STATE', `${aud}/${state}`)
+      res.cookie('SESSION_STATE', `${aud}/${session_state}`)
     } else {
       url = fragmentize(createUrl(redirect_uri, { error: 'unsupported_response_type', state, nonce }))
       res.clearCookie('SESSION_STATE')
@@ -272,28 +294,51 @@ export function setup ({
   app.post(paths.tokenEndpoint, bodyParser, cookieParser(), (req, res) => {
     const {
       grant_type,
-      client_id: aud
-      // code,
-      // redirect_uri,
+      client_id: aud,
+      refresh_token: refreshToken,
+      code
     } = req.body
 
-    // eslint-disable-next-line
-    const [_, state] = (req.cookies.SESSION_STATE || '').split('/')
-    const nonce = state && nonces.get(state)
-    nonces.delete(state)
+    let body
 
-    if (!['authorization_code', 'refresh_token'].includes(grant_type)) {
-      res.status(400).type('json').json({ error: 'invalid_request' })
-      return
-    }
-
-    res.body = {
+    const tokenResponse = (foundSession) => ({
       expires_in: conf.exp,
       token_type: 'Bearer',
-      ...(getTokens(jwks, { issuer, aud, state, nonce, ...conf }))
+      ...(getTokens(jwks, { ...conf, issuer, aud, ...foundSession }))
+    })
+
+    if (grant_type === 'authorization_code' && code) {
+      const foundSession = codes.get(code)
+      if (!foundSession) {
+        res.status(400)
+        body = { error: 'invalid_grant' }
+      } else {
+        codes.delete(code)
+        body = tokenResponse(foundSession)
+      }
+    } else if (grant_type === 'refresh_token' && refreshToken) {
+      const payload = jwks.verifyToken(refreshToken)
+      if (!payload) {
+        res.status(400)
+        body = { error: 'invalid_grant' }
+      } else {
+        const { session_state, nonce, exp } = payload
+        if (exp <= _now()) {
+          res.status(400)
+          body = { error: 'invalid_grant' }
+        } else {
+          const expRefresh = Math.max(0, exp - _now())
+          // const expRefresh = undefined // set this if infinite refresh is desired
+          const foundSession = { session_state, nonce, expRefresh }
+          body = tokenResponse(foundSession)
+        }
+      }
+    } else {
+      res.status(400)
+      body = { error: 'unsupported_grant_type' }
     }
 
-    res.json(res.body)
+    res.json(body)
   })
 
   app.get(paths.userinfoEndpoint, (req, res) => {
@@ -307,10 +352,10 @@ export function setup ({
     }
   })
 
-  app.get(paths.endSessionEndpoint, (req, res) => {
-    const { redirect_uri } = req.query
+  app.get(paths.endSessionEndpoint, cookieParser(), (req, res) => {
+    const { post_logout_redirect_uri, redirect_uri } = req.query
     res.clearCookie('SESSION_STATE')
-    res.redirect(redirect_uri)
+    res.redirect(post_logout_redirect_uri || redirect_uri)
   })
 
   if (paths.checkSessionIframe) {

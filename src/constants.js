@@ -1,4 +1,7 @@
 
+// default scope
+export const OPENID = 'openid'
+
 // responseMode
 export const FRAGMENT = 'fragment'
 export const QUERY = 'query'
@@ -29,6 +32,11 @@ export const ERROR_URI = 'error_uri'
 // prompt
 export const NONE = 'none'
 export const LOGIN = 'login'
+
+// status iframe
+export const CHANGED = 'changed'
+export const UNCHANGED = 'unchanged'
+// export const ERROR = 'error'
 
 // content-type
 export const TYPE_URLENCODED = 'application/x-www-form-urlencoded'

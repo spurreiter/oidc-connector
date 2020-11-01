@@ -1,8 +1,14 @@
 import { decodeToken, get, LocalStorage } from './utils/index.js'
 
+import {
+  SESSION_STATE
+} from './constants.js'
+
 const now = () => Math.ceil(new Date().getTime() / 1000)
 
 const toNumber = (num, def) => !isNaN(Number(num)) ? Number(num) : def
+
+const claim = (t, claim, def) => get(t, ['idTokenParsed', claim], get(t, ['tokenParsed', claim], def))
 
 export class Tokens {
   constructor ({ log, useNonce, minValidity, useLocalStorage = true } = {}) {
@@ -99,11 +105,11 @@ export class Tokens {
       }
       this.log.info('token set %o', this.tokenParsed)
       const iat = toNumber(
-        get(this.tokenParsed, 'iat') || get(this.idTokenParsed, 'iat'),
+        claim(this, 'iat'),
         now() - 1
       )
       this._expiresAt = toNumber(
-        get(this.tokenParsed, 'exp') || get(this.idTokenParsed, 'exp'),
+        claim(this, 'exp'),
         now() + expiresIn
       )
       this._timeSkew = Math.floor(this._timeLocal / 1000) - iat
@@ -136,11 +142,11 @@ export class Tokens {
   }
 
   sessionState () {
-    return get(this, 'tokenParsed.session_state', '')
+    return claim(this, SESSION_STATE, '')
   }
 
   subject () {
-    return get(this, 'tokenParsed.sub')
+    return claim(this, 'sub')
   }
 
   realmAccess () {

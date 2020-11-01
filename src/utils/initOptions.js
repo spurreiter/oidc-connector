@@ -12,7 +12,8 @@ import {
   IMPLICIT,
   HYBRID,
   NONE,
-  LOGIN
+  LOGIN,
+  OPENID
 } from '../constants.js'
 
 const set = (val, def) => Array.isArray(def)
@@ -63,6 +64,20 @@ export function initOptions (options = {}) {
     pkce: set(func(options.pkce), pkce),
     log
   }
+
+  // sanitize scope
+  const scope_ = options.scope
+  const scope = (
+    !scope_
+      ? []
+      : typeof scope_ === 'string'
+        ? scope_.split(' ')
+        : scope_
+  ).filter(Boolean)
+  if (!scope.includes(OPENID) && !options.noOpenidInScope) {
+    scope.unshift(OPENID)
+  }
+  opts.scope = scope.join(' ')
 
   // make url point to a real host
   const s = 'silentLoginRedirectUri'

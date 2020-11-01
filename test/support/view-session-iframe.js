@@ -1,3 +1,5 @@
+/* eslint no-console: off */
+
 var CHANGED = 'changed'
 var UNCHANGED = 'unchanged'
 var ERROR = 'error'
@@ -6,16 +8,16 @@ var init = false
 
 function checkState (clientId, sessionState, post) {
   var cookie = getCookie('SESSION_STATE')
-  console.log('[sessionIframe] checkState %s %s %s', cookie, clientId, sessionState)
+  console.log('[sessionIframe] checkState "%s" "%s/%s"', cookie, clientId, sessionState)
   var c = cookie.split('/')
   if (!init && !c[1] && !c[2]) { // can't read cookie, maybe 3rd party cookies are blocked...
-    init = true
     post(ERROR)
   } else if (sessionState === c[1] && clientId === c[0]) {
     post(UNCHANGED)
   } else {
     post(CHANGED)
   }
+  init = true
 }
 
 function getCookie (key) {

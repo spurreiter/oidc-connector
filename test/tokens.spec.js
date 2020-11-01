@@ -148,12 +148,12 @@ describe('tokens', function () {
       assert.strictEqual(tokens.authenticated, true)
     })
 
-    it('shall not get session state', function () {
-      assert.strictEqual(tokens.sessionState(), '')
+    it('shall get session state from id token', function () {
+      assert.strictEqual(tokens.sessionState(), 'mystate')
     })
 
-    it('shall not get subject', function () {
-      assert.strictEqual(tokens.subject(), undefined)
+    it('shall get subject', function () {
+      assert.strictEqual(tokens.subject(), 'f:uuid:subject')
     })
 
     it('shall not get realmAccess', function () {

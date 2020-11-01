@@ -80,6 +80,7 @@ export class Client extends EventEmitter {
         return this._processCallback(oauth)
       }
     }
+
     const { token, refreshToken } = this.tokens
     if (token && refreshToken) {
       return this._processWithTokens()
@@ -90,19 +91,12 @@ export class Client extends EventEmitter {
   }
 
   async _processWithTokens () {
-    let minValidity = -1
+    // check if session is still valid
+    // throws if invalid otherwise starts timer
+    await this.statusIframe.schedule()
 
-    if (this.options.statusIframe) {
-      await this.statusIframe.setup()
-      const unchanged = await this.statusIframe.check() // may throw on error
-      if (unchanged === false) {
-        this._handleLogout()
-        return Promise.reject(new Error('changed session'))
-      } else {
-        this.statusIframe.schedule()
-        minValidity = undefined
-      }
-    }
+    // force refresh if status iframe is disabled
+    const minValidity = !this.statusIframe.enabled && -1
 
     return this._refresh(minValidity)
       .then(tokens => tokens || this.tokens.getTokens()) // tokens may not be present if not yet expired
@@ -141,7 +135,6 @@ export class Client extends EventEmitter {
       const res = await fetchToken(url, query)
       if (res.status === 200) {
         const tokenResponse = await res.json()
-        this.statusIframe.schedule()
         return this._authSuccess(tokenResponse, oauth)
       }
       const error = await res.json()
@@ -158,6 +151,8 @@ export class Client extends EventEmitter {
     if (this.tokens.isInvalidNonce(oauth.storedNonce)) {
       return Promise.reject(new Error('invalid nonce'))
     }
+
+    await this.statusIframe.schedule()
   }
 
   async _refresh (minValidity = this.options.minValidity) {
@@ -174,7 +169,7 @@ export class Client extends EventEmitter {
     if (minValidity === -1) {
       needsRefresh = true
       log.info('forced refresh')
-    } else if (!tokens.tokenParsed || tokens.isTokenExpired(minValidity)) {
+    } else if (tokens.isTokenExpired(minValidity)) {
       needsRefresh = true
       log.info('token expired')
     }
@@ -195,6 +190,7 @@ export class Client extends EventEmitter {
         log.info('token refreshed')
         const tokenResponse = await res.json()
         this.tokens.setTokens(tokenResponse)
+        await this.statusIframe.schedule()
         this.debounce.resolveAll(this.tokens.getTokens())
       } else {
         if (res.status === 400) {
@@ -319,6 +315,7 @@ async function fetchToken (url, query) {
   return fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': TYPE_URLENCODED, Accept: 'application/json' },
+    // mode: 'no-cors',
     body: urlEncoded(query)
   })
 }

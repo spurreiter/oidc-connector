@@ -1,9 +1,10 @@
 import { createPromise, debouncePromises } from './createPromise.js'
 import { createIframe } from './createIframe.js'
-
-const ERROR = 'error'
-const CHANGED = 'changed'
-const UNCHANGED = 'unchanged'
+import {
+  CHANGED,
+  UNCHANGED,
+  ERROR
+} from '../constants.js'
 
 const TITLE = 'oidc-status-iframe'
 
@@ -20,6 +21,23 @@ export class StatusIframe {
     this.log = log
   }
 
+  _schedule () {
+    if (this.enabled && !this.timerId) {
+      this.timerId = setTimeout(async () => {
+        this.timerId = null
+        try {
+          const status = await this.check()
+          if (status === UNCHANGED) {
+            this._schedule()
+            return
+          }
+        } catch (e) {}
+        // start logout if ERROR or CHANGED
+        this.client._handleLogout()
+      }, this.interval)
+    }
+  }
+
   origin () {
     const authUrl = this.client.endpoints.authorize()
     return (authUrl.charAt(0) === '/')
@@ -31,19 +49,22 @@ export class StatusIframe {
     this.enabled = false
   }
 
-  setup () {
-    if (this.iframe || !this.enabled) {
-      return
-    }
+  async setup () {
     const promise = createPromise()
+
+    if (this.iframe || !this.enabled) {
+      promise.resolve()
+      return promise
+    }
 
     const src = this.client.endpoints.checkSessionIframe()
     if (!src) {
       this.log.info('no check_session_iframe')
       this.disable()
       promise.resolve()
-      return
+      return promise
     }
+
     const iframe = this.iframe = createIframe({ src, title: TITLE })
 
     const handleLoad = () => {
@@ -58,18 +79,16 @@ export class StatusIframe {
         return
       }
 
-      this.log.info('statusIframe "%s"', event.data)
-
       if (![UNCHANGED, CHANGED, ERROR].includes(event.data)) {
         return
       }
 
+      this.log.info('statusIframe "%s"', event.data)
       if (event.data === ERROR) {
         this.disable()
-        this.debounce.rejectAll(new Error('status iframe'))
-      } else {
-        this.debounce.resolveAll(event.data === UNCHANGED)
       }
+
+      this.debounce.resolveAll(event.data)
     }
 
     window.addEventListener('message', handleMessage, false)
@@ -77,37 +96,56 @@ export class StatusIframe {
     return promise
   }
 
-  clearSchedule () {
-    clearTimeout(this.timerId)
-  }
-
-  schedule () {
-    if (this.enabled && this.client.tokens.authenticated) {
-      this.timerId = setTimeout(async () => {
-        try {
-          const unchanged = await this.check()
-          if (unchanged) {
-            this.schedule()
-          } else {
-            this.client._handleLogout()
-          }
-        } catch (e) {}
-      }, this.interval)
-    }
-  }
-
-  check () {
-    if (!this.enabled || !this.iframe || !this.iframeOrigin) {
-      return
-    }
+  async check () {
     const promise = createPromise()
+
+    const { enabled, iframe, iframeOrigin } = this
     const { clientId } = this.client.options
     const sessionState = this.client.tokens.sessionState()
 
-    const msg = `${clientId} ${sessionState}`
-    if (this.debounce.push(promise)) {
-      this.iframe.contentWindow.postMessage(msg, this.iframeOrigin)
+    if (enabled && iframe && iframeOrigin && clientId && sessionState) {
+      if (this.debounce.push(promise)) {
+        this.log.info('statusIframe check "%s" "%s"', clientId, sessionState)
+        const msg = `${clientId} ${sessionState}`
+        this.iframe.contentWindow.postMessage(msg, this.iframeOrigin)
+      }
+    } else {
+      this.log.info('statusIframe disabled %o', {
+        enabled,
+        iframe,
+        iframeOrigin,
+        clientId,
+        sessionState
+      })
+      this.disable()
+      promise.resolve(ERROR)
     }
+
     return promise
+  }
+
+  async schedule () {
+    const needsFirstCheck = !this.iframe
+
+    await this.setup()
+    if (!this.enabled) return
+
+    if (needsFirstCheck) {
+    // first check - ignore first error as this might be due to blocked 3rd party cookies
+      const status = await this.check()
+      if (status === UNCHANGED) {
+        this._schedule()
+      } else {
+        if (status === CHANGED) {
+          this.client._handleLogout()
+        }
+        return Promise.reject(new Error('status iframe %s', status))
+      }
+    }
+  }
+
+  clearSchedule () {
+    clearTimeout(this.timerId)
+    this.timerId = null
   }
 }
