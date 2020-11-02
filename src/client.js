@@ -253,7 +253,7 @@ export class Client extends EventEmitter {
     return this.tokens.getTokens()
   }
 
-  async bearerToken () {
+  async accessToken () {
     const { token, refreshToken } = this.tokens
     const isExpired = this.tokens.isTokenExpired()
     if ((!token || isExpired) && refreshToken) {
@@ -291,7 +291,7 @@ export class Client extends EventEmitter {
 
   async userinfo () {
     const url = this.endpoints.userinfo()
-    const token = await this.bearerToken()
+    const token = await this.accessToken()
     const res = await fetch(url, {
       headers: {
         Accept: 'application/json',

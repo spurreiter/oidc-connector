@@ -66,7 +66,7 @@ await client.login().catch(err => {
 for later using the token in communications (e.g. RESTful)
 
 ```js
-const token = await client.bearerToken()
+const token = await client.accessToken()
 const res = await fetch('http://example.org', {
   headers: {
     Authorization: `Bearer ${token}`,
