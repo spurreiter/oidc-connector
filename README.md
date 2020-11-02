@@ -410,12 +410,6 @@ npm run dev:server
 
 [Apache 2.0](./LICENSE)
 
-This is a refactoring of [keycloak-js](https://www.npmjs.com/package/keycloak-js).
-
-The derivative parts of the work are licensed under Apache 2.0 Copyright 2016 Red Hat, Inc. and/or its affiliates and other contributors.
-
-All other parts including the test cases are licensed under Apache 2.0 as well.
-
 ## References
 
 <!-- !ref -->

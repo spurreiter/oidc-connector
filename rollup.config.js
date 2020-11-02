@@ -2,7 +2,6 @@ import babel from '@rollup/plugin-babel'
 import { terser } from 'rollup-plugin-terser'
 
 const banner = `/*!
-Copyright 2016 Red Hat, Inc. and/or its affiliates and other contributors.
 Copyright 2020 spurreiter
 
 Licensed under the Apache License, Version 2.0 (the "License");

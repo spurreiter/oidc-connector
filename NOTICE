@@ -1,0 +1,8 @@
+oidc-connector
+Copyright 2020 spurreiter
+
+This is a refactoring of keycloak-js (https://www.npmjs.com/package/keycloak-js)
+licensed under Apache-2.0.
+
+This product includes software developed for keycloak (https://keycloak.org)
+Copyright 2016 Red Hat, Inc. and/or its affiliates and other contributors.
