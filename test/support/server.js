@@ -77,7 +77,7 @@ function hashAccessToken (token) {
 
 // --- server related stuff
 
-const getPaths = ({ baseUrl, noCheckSession }) => ({
+const getPaths = ({ host, baseUrl, noCheckSession }) => ({
   issuer: baseUrl,
   oidcUri: baseUrl + '/.well-known/openid-configuration',
   jwksUri: baseUrl + '/certs',
@@ -94,6 +94,14 @@ const getWellKnownConfig = (paths, { origin = '' }) => {
     o[toSnakeCase(key)] = origin + val
     return o
   }, {})
+}
+
+const originF = ({ protocol, hostname, port }) => ({ host } = {}) => {
+  // ignore supertest test cases
+  host = host.indexOf('127.0.0.1:') === 0 ? undefined : host
+  return host
+    ? `${protocol}//${host}`
+    : `${protocol}//${hostname}${port ? `:${port}` : ''}`
 }
 
 const _now = () => (Date.now() / 1000 | 0)
@@ -211,10 +219,8 @@ export function setup ({
   noCheckSession = false
 } = {}) {
   const jwks = new RsaKey()
-  const origin = `${protocol}//${hostname}${port ? `:${port}` : ''}`
-  const issuer = `${origin}${baseUrl}`
+  const getOrigin = originF({ protocol, hostname, port })
   const paths = getPaths({ baseUrl, noCheckSession })
-  const oidcConfig = getWellKnownConfig(paths, { origin, noCheckSession })
   const app = express()
   const codes = new Map()
 
@@ -232,6 +238,7 @@ export function setup ({
   })
 
   app.get(paths.oidcUri, (req, res) => {
+    const oidcConfig = getWellKnownConfig(paths, { origin: getOrigin(req.headers), noCheckSession })
     res.type('json').json(oidcConfig)
   })
 
@@ -264,6 +271,7 @@ export function setup ({
     let isValidResponseType = false
     let url
     const params = { state, session_state: session_state } // we simplify session_state here
+    const issuer = `${getOrigin(req.headers)}${baseUrl}`
 
     const { access_token, id_token } = getTokens(jwks, { ...conf, issuer, aud, session_state, nonce })
     if (response_type.includes('code')) {
@@ -291,7 +299,7 @@ export function setup ({
     res.redirect(url)
   })
 
-  app.post(paths.tokenEndpoint, bodyParser, cookieParser(), (req, res) => {
+  app.post(paths.tokenEndpoint, bodyParser, (req, res) => {
     const {
       grant_type,
       client_id: aud,
@@ -301,11 +309,14 @@ export function setup ({
 
     let body
 
-    const tokenResponse = (foundSession) => ({
-      expires_in: conf.exp,
-      token_type: 'Bearer',
-      ...(getTokens(jwks, { ...conf, issuer, aud, ...foundSession }))
-    })
+    const tokenResponse = (foundSession) => {
+      const issuer = `${getOrigin(req.headers)}${baseUrl}`
+      return {
+        expires_in: conf.exp,
+        token_type: 'Bearer',
+        ...(getTokens(jwks, { ...conf, issuer, aud, ...foundSession }))
+      }
+    }
 
     if (grant_type === 'authorization_code' && code) {
       const foundSession = codes.get(code)
@@ -352,13 +363,18 @@ export function setup ({
     }
   })
 
-  app.get(paths.endSessionEndpoint, cookieParser(), (req, res) => {
+  app.get(paths.endSessionEndpoint, (req, res) => {
     const { post_logout_redirect_uri, redirect_uri } = req.query
     res.clearCookie('SESSION_STATE')
     res.redirect(post_logout_redirect_uri || redirect_uri)
   })
 
   if (paths.checkSessionIframe) {
+    app.get(paths.checkSessionIframe + '/init', cookieParser(), (req, res) => {
+      console.log('===>', req.cookies, req.query)
+      res.status(204).end()
+    })
+
     app.get(paths.checkSessionIframe, (req, res) => {
       res.type('html').end(viewSessionIframe)
     })

@@ -131,15 +131,17 @@ export class StatusIframe {
     if (!this.enabled) return
 
     if (needsFirstCheck) {
-    // first check - ignore first error as this might be due to blocked 3rd party cookies
       const status = await this.check()
       if (status === UNCHANGED) {
         this._schedule()
       } else {
-        if (status === CHANGED) {
-          this.client._handleLogout()
-        }
-        // silently disable for 1st time if status == ERROR
+        // if checking for first time it is assumed that 3rd party
+        // cookies are blocked and the session check may result in an CHANGED
+        // or ERROR event dependent of the choosen implementation.
+        // Logout shall be handled by forced token refresh in such cases.
+        // Such session status management is silenty disabled at 1st time
+        // if status == ERROR or CHANGED
+        this.log.info('statusIframe disables at 1st check "%s"', status)
         this.disable()
       }
     } else {
