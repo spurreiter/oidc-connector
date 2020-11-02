@@ -141,6 +141,8 @@ export class StatusIframe {
         }
         return Promise.reject(new Error('status iframe %s', status))
       }
+    } else {
+      this._schedule()
     }
   }
 
