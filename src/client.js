@@ -1,4 +1,4 @@
-/*!
+/**
 Copyright 2016 Red Hat, Inc. and/or its affiliates and other contributors.
 Copyright 2020 spurreiter
 

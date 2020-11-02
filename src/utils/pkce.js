@@ -9,7 +9,7 @@ const map = {
 const RE_MAP = /[+/=]/g
 
 function uint8ArrayToString (arrUint8) {
-  var sUtf8 = ''
+  let sUtf8 = ''
   for (let i = 0; i < arrUint8.length; i++) {
     sUtf8 += String.fromCharCode(arrUint8[i])
   }

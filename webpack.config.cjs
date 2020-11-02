@@ -7,7 +7,7 @@ module.exports = {
   plugins: [new webpack.ProgressPlugin()],
   entry: path.resolve(__dirname, 'test/html/app.js'),
   output: {
-    path: `${__dirname}/example`,
+    path: path.resolve(__dirname, 'example'),
     filename: 'index.js'
   },
   module: {

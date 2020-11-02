@@ -18,12 +18,12 @@ import {
 
 const set = (val, def) => Array.isArray(def)
   ? def.includes(val)
-    ? val
-    : def[0]
+      ? val
+      : def[0]
   : val !== undefined
     ? typeof def === 'boolean'
-      ? !!val
-      : val
+        ? !!val
+        : val
     : def
 
 const number = val => isNaN(val) ? undefined : val

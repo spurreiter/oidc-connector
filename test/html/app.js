@@ -1,3 +1,5 @@
+/* eslint no-console: off */
+
 import 'regenerator-runtime'
 import Client from '../../src/index.js'
 
@@ -111,7 +113,7 @@ import Client from '../../src/index.js'
         const { type, options } = formMeta[name] || {}
         if (options) return select({ name, value, options })
         else if (type === 'checkbox') return checkbox({ name, value })
-        else if (type === 'text') return input({ name, value })
+        else return input({ name, value })
       })
         .join('\n')
       }
@@ -165,7 +167,7 @@ import Client from '../../src/index.js'
     id.token.textContent = content
   }
 
-  var client
+  let client
   function setupClient () {
     client = new Client(getSettings())
 

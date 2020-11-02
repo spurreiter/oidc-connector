@@ -1,15 +1,15 @@
 /* eslint no-console: off */
 
-var CHANGED = 'changed'
-var UNCHANGED = 'unchanged'
-var ERROR = 'error'
+const CHANGED = 'changed'
+const UNCHANGED = 'unchanged'
+const ERROR = 'error'
 
-var init = false
+let init = false
 
 function checkState (clientId, sessionState, post) {
-  var cookie = getCookie('SESSION_STATE')
+  const cookie = getCookie('SESSION_STATE')
   console.log('[sessionIframe] checkState "%s" "%s/%s"', cookie, clientId, sessionState)
-  var c = cookie.split('/')
+  const c = cookie.split('/')
   if (!init && !c[1] && !c[2]) { // can't read cookie, maybe 3rd party cookies are blocked...
     post(ERROR)
   } else if (sessionState === c[1] && clientId === c[0]) {
@@ -21,10 +21,10 @@ function checkState (clientId, sessionState, post) {
 }
 
 function getCookie (key) {
-  var name = key + '='
-  var ca = document.cookie.split(';')
-  for (var i = 0; i < ca.length; i++) {
-    var c = ca[i].trimStart()
+  const name = key + '='
+  const ca = document.cookie.split(';')
+  for (let i = 0; i < ca.length; i++) {
+    const c = ca[i].trimStart()
     if (c.indexOf(name) === 0) {
       return decodeURIComponent(c.substring(name.length, c.length))
     }
@@ -37,14 +37,14 @@ function receiveMessage (ev) {
     return
   }
 
-  var origin = ev.origin
-  var data = ev.data.split(' ')
+  const origin = ev.origin
+  const data = ev.data.split(' ')
   if (data.length !== 2) {
     return
   }
 
-  var clientId = data[0]
-  var sessionState = data[1]
+  const clientId = data[0]
+  const sessionState = data[1]
 
   checkState(clientId, sessionState, function (result) {
     ev.source.postMessage(result, origin)
