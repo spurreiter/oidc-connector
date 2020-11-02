@@ -39,6 +39,7 @@
     "coverage": "c8 --clean -r text -r html npm t",
     "dev": "webpack serve",
     "dev:server": "nodemon test/support/server.js",
+    "example": "webpack",
     "lint": "eslint --fix \"**/*.js\" \"**/*.cjs\"",
     "test": "mocha"
   },
@@ -78,6 +79,7 @@
     "terser-webpack-plugin": "^5.0.3",
     "webpack": "^5.3.2",
     "webpack-cli": "^4.1.0",
+    "webpack-dev-server": "^3.11.0",
     "whatwg-fetch": "^3.4.1"
   },
   "publishConfig": {}

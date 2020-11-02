@@ -7,6 +7,7 @@ module.exports = {
   plugins: [new webpack.ProgressPlugin()],
   entry: path.resolve(__dirname, 'test/html/app.js'),
   output: {
+    path: `${__dirname}/example`,
     filename: 'index.js'
   },
   module: {
@@ -20,7 +21,7 @@ module.exports = {
     // host: '0.0.0.0',
     port: 8000,
     hot: true,
-    contentBase: ['./dist', './test/html'],
+    contentBase: ['./example', './test/html'],
     before: function (app) {
       app.get('/silent-login-check.html', (req, res) => {
         const html = '<html>\n' +

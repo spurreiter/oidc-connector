@@ -126,7 +126,7 @@ import Client from '../../src/index.js'
     const opts = Array.from(form).reduce((o, [key, value]) => {
       const type = typeof options[key]
       if (type === 'boolean') {
-        if (value === 'on') o[key] = true
+        o[key] = (value === 'on' || value === true)
       } else if (key === 'authorizationParams') {
         try {
           o[key] = JSON.parse(value)
@@ -154,6 +154,7 @@ import Client from '../../src/index.js'
       <a href="#" onclick="__register()">register</a>
       <a href="#" onclick="__account()">account</a>
       <a href="#" onclick="__userinfo()">userinfo</a>
+      <a href="#" onclick="__wellknownConfig()">well-known</a>
     `
   }
 
@@ -214,4 +215,9 @@ import Client from '../../src/index.js'
     client.account().catch(console.error)
   window.__userinfo = () =>
     client.userinfo().then(info => renderContent(info)).catch(console.error)
+  window.__wellknownConfig = () => {
+    const opts = getSettings()
+    const url = `${opts.url}${opts.realm ? `/realms/${opts.realm}` : ''}/.well-known/openid-configuration`
+    window.open(url, '_blanc')
+  }
 })()
