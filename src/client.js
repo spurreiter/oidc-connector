@@ -164,7 +164,12 @@ export class Client extends EventEmitter {
     const { log, clientId } = this.options
     const { tokens } = this
 
+    const isExpired = tokens.isTokenExpired(minValidity)
+
     if (!this.tokens.refreshToken) {
+      if (isExpired) {
+        this._handleLogout()
+      }
       promise.reject(new Error('no refresh token'))
       return promise
     }
@@ -173,7 +178,7 @@ export class Client extends EventEmitter {
     if (minValidity === -1) {
       needsRefresh = true
       log.info('forced refresh')
-    } else if (tokens.isTokenExpired(minValidity)) {
+    } else if (isExpired) {
       needsRefresh = true
       log.info('token expired')
     }
