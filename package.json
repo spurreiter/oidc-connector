@@ -39,7 +39,7 @@
     "coverage": "c8 --clean -r text -r html npm t",
     "dev": "webpack serve",
     "dev:server": "nodemon test/support/server.js",
-    "example": "webpack",
+    "example": "webpack && node example/server.js",
     "lint": "eslint --fix \"**/*.js\" \"**/*.cjs\"",
     "test": "mocha"
   },

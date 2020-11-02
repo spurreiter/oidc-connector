@@ -108,12 +108,18 @@ import Client from '../../src/index.js'
 
     const html = `
     <form onsubmit="return false">
-      ${Object.entries(options).map(([name, value]) => {
-        if (typeof value === 'string') { value = value.replace(/"/g, '&quot;') }
-        const { type, options } = formMeta[name] || {}
-        if (options) return select({ name, value, options })
-        else if (type === 'checkbox') return checkbox({ name, value })
-        else return input({ name, value })
+      ${Object.entries(formMeta).map(([name, meta]) => {
+        let value = options[name]
+        if (typeof value === 'string') {
+          value = value.replace(/"/g, '&quot;')
+        }
+        if (meta.options) {
+          return select({ name, value, options: meta.options })
+        } else if (meta.type === 'checkbox') {
+          return checkbox({ name, value })
+        } else {
+          return input({ name, value })
+        }
       })
         .join('\n')
       }
