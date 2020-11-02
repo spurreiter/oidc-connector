@@ -1,6 +1,9 @@
-node_modules/
 coverage/
-*.tgz
-*.log
+example/
+node_modules/
+test/
+
 .*
+*.log
+*.tgz
 NOTES.md

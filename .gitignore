@@ -1,8 +1,10 @@
-node_modules/
 coverage/
-*.tgz
-*.log
-.DS_Store
 dist/
 esm/
+node_modules/
+example/index.js
+
+.DS_Store
+*.log
+*.tgz
 NOTES.md
