@@ -26,7 +26,7 @@ Verified to work with following OIDC servers
 - [okta](https://okta.com)
 
 <small>*) If you have successfully used this client with other OIDC Servers
-please let us through a PR or Issue.</small>
+please let us know through a PR or Issue.</small>
 
 ## Usage
 
