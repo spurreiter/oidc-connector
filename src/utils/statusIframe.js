@@ -21,23 +21,6 @@ export class StatusIframe {
     this.log = log
   }
 
-  _schedule () {
-    if (this.enabled && !this.timerId) {
-      this.timerId = setTimeout(async () => {
-        this.timerId = null
-        try {
-          const status = await this.check()
-          if (status === UNCHANGED) {
-            this._schedule()
-            return
-          }
-        } catch (e) {}
-        // start logout if ERROR or CHANGED
-        this.client._handleLogout()
-      }, this.interval)
-    }
-  }
-
   origin () {
     const authUrl = this.client.endpoints.authorize()
     return (authUrl.charAt(0) === '/')
@@ -124,6 +107,23 @@ export class StatusIframe {
     return promise
   }
 
+  _schedule () {
+    if (this.enabled && !this.timerId) {
+      this.timerId = setTimeout(async () => {
+        this.timerId = null
+        try {
+          const status = await this.check()
+          if (status === UNCHANGED) {
+            this._schedule()
+            return
+          }
+        } catch (e) {}
+        // start logout if ERROR or CHANGED
+        this.client._handleLogout()
+      }, this.interval)
+    }
+  }
+
   async schedule () {
     const needsFirstCheck = !this.iframe
 
@@ -139,7 +139,8 @@ export class StatusIframe {
         if (status === CHANGED) {
           this.client._handleLogout()
         }
-        return Promise.reject(new Error('status iframe %s', status))
+        // silently disable for 1st time if status == ERROR
+        this.disable()
       }
     } else {
       this._schedule()

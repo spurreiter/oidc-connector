@@ -81,7 +81,6 @@ export class Client extends EventEmitter {
     if (oauth) {
       window.history.replaceState(window.history.state, null, oauth.newUrl)
       if (oauth.valid) {
-        await this.statusIframe.setup()
         return this._processCallback(oauth)
       }
     }
