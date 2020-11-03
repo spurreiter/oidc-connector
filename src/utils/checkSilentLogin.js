@@ -2,8 +2,6 @@ import { createPromise } from './createPromise.js'
 import { createIframe } from './createIframe.js'
 import { NONE } from '../constants.js'
 
-const MESSAGE = 'message'
-
 export async function checkSilentLogin (client) {
   const { callback, endpoints, options } = client
   const promise = createPromise()
@@ -13,23 +11,19 @@ export async function checkSilentLogin (client) {
     prompt: NONE,
     redirectUri: options.silentLoginRedirectUri
   })
-  const iframe = createIframe({ src, title: 'oidc-silent-check-sso' })
+  const iframe = (checkSilentLogin.mock || createIframe)({ src, title: 'oidc-silent-check-sso' })
+  iframe.origin = window.location.origin
 
-  const handleMessage = function (ev) {
-    if (ev.origin !== window.location.origin || iframe.contentWindow !== ev.source) {
-      return
-    }
+  const handleMessage = (ev) => {
     const oauth = callback.parse(ev.data)
-    document.body.removeChild(iframe)
-    window.removeEventListener(MESSAGE, handleMessage)
+    iframe.removeListener(handleMessage)
     if (!oauth) {
       promise.reject(new Error('silent login failed'))
     } else {
       promise.resolve(oauth)
     }
   }
-
-  window.addEventListener(MESSAGE, handleMessage)
+  iframe.addListener(handleMessage)
 
   return promise
 }

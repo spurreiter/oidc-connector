@@ -291,7 +291,7 @@ export function setup ({
 
     if (isValidResponseType) {
       url = fragmentize(createUrl(redirect_uri, params))
-      res.cookie('SESSION_STATE', `${aud}/${session_state}`)
+      res.cookie('SESSION_STATE', `${aud}/${session_state}`, { sameSite: 'strict' })
     } else {
       url = fragmentize(createUrl(redirect_uri, { error: 'unsupported_response_type', state, nonce }))
       res.clearCookie('SESSION_STATE')

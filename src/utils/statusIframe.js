@@ -48,33 +48,24 @@ export class StatusIframe {
       return promise
     }
 
-    const iframe = this.iframe = createIframe({ src, title: TITLE })
+    this.iframe = (this.mock || createIframe)({ src, title: TITLE })
+    this.iframe.load(this.client.endpoints.authorize())
+      .then(() => promise.resolve())
 
-    const handleLoad = () => {
-      this.iframeOrigin = this.origin()
-      promise.resolve()
-    }
-    iframe.addEventListener('load', handleLoad)
-
-    const handleMessage = (event) => {
-      if ((event.origin !== this.iframeOrigin) ||
-          (this.iframe.contentWindow !== event.source)) {
+    const handleMessage = (ev) => {
+      if (![UNCHANGED, CHANGED, ERROR].includes(ev.data)) {
         return
       }
 
-      if (![UNCHANGED, CHANGED, ERROR].includes(event.data)) {
-        return
-      }
-
-      this.log.info('statusIframe "%s"', event.data)
-      if (event.data === ERROR) {
+      this.log.info('statusIframe "%s"', ev.data)
+      if (ev.data === ERROR) {
         this.disable()
       }
 
-      this.debounce.resolveAll(event.data)
+      this.debounce.resolveAll(ev.data)
     }
 
-    window.addEventListener('message', handleMessage, false)
+    this.iframe.addListener(handleMessage)
 
     return promise
   }
@@ -82,21 +73,20 @@ export class StatusIframe {
   async check () {
     const promise = createPromise()
 
-    const { enabled, iframe, iframeOrigin } = this
+    const { enabled, iframe } = this
     const { clientId } = this.client.options
     const sessionState = this.client.tokens.sessionState()
 
-    if (enabled && iframe && iframeOrigin && clientId && sessionState) {
+    if (enabled && iframe && iframe.origin && clientId && sessionState) {
       if (this.debounce.push(promise)) {
         this.log.info('statusIframe check "%s" "%s"', clientId, sessionState)
         const msg = `${clientId} ${sessionState}`
-        this.iframe.contentWindow.postMessage(msg, this.iframeOrigin)
+        this.iframe.postMessage(msg)
       }
     } else {
       this.log.info('statusIframe disabled %o', {
         enabled,
         iframe,
-        iframeOrigin,
         clientId,
         sessionState
       })
