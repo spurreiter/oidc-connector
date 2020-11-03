@@ -23,13 +23,11 @@ import {
   ERROR_URI
 } from '../constants.js'
 
-// const PARAMS = {
-//   [STANDARD]: [CODE, STATE, SESSION_STATE, KC_ACTION_STATUS],
-//   [IMPLICIT]: [CODE, ACCESS_TOKEN, TOKEN_TYPE, ID_TOKEN, STATE, SESSION_STATE, EXPIRES_IN, KC_ACTION_STATUS],
-//   [HYBRID]: [CODE, ACCESS_TOKEN, ID_TOKEN, STATE, SESSION_STATE, KC_ACTION_STATUS]
-// }
-
-const PARAMS = [CODE, ACCESS_TOKEN, TOKEN_TYPE, ID_TOKEN, STATE, SESSION_STATE, EXPIRES_IN, KC_ACTION_STATUS]
+const PARAMS = [
+  CODE, ACCESS_TOKEN, TOKEN_TYPE, ID_TOKEN, STATE, SESSION_STATE,
+  EXPIRES_IN, KC_ACTION_STATUS, RESPONSE_MODE,
+  ERROR, ERROR_DESCRIPTION, ERROR_URI
+]
 
 export class Callback {
   constructor (options) {
@@ -66,16 +64,9 @@ export class Callback {
   }
 
   _parseUrl (url) {
-    // let supportedParams = PARAMS[this._flow] || []
-    let supportedParams = PARAMS
-    supportedParams = supportedParams.concat([
-      RESPONSE_MODE,
-      ERROR,
-      ERROR_DESCRIPTION,
-      ERROR_URI
-    ])
+    const supportedParams = PARAMS
 
-    let oauth
+    let oauth = {}
     const uri = new URL(url)
 
     const reduce = (search) => supportedParams.reduce((oauth, param) => {
