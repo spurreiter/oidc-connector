@@ -47,7 +47,8 @@ export class Client extends EventEmitter {
     this.tokens = new Tokens(this.options)
     this.debounce = debouncePromises()
     this.endpoints = null
-    this.statusIframe = null
+    this.statusIframe = new StatusIframe(this)
+    this.checkSilentLogin = checkSilentLogin
     // try to load tokens
     this.tokens.fromInitOptions(this.options)
   }
@@ -62,7 +63,6 @@ export class Client extends EventEmitter {
       } = await loadConfig(this.options)
       this.options.clientId = clientId
       this.endpoints = endpoints(serverUrl, oidcConfig, this.callback)
-      this.statusIframe = new StatusIframe(this)
       this.adapter.initialize(this)
       this.options.redirectUri = this.adapter.redirectUri()
       log.info('oidcConfig loaded %o', oidcConfig)
@@ -120,10 +120,12 @@ export class Client extends EventEmitter {
       return Promise.reject(err)
     }
 
-    if ((flow !== STANDARD) && (oauth.access_token || oauth.id_token)) {
+    // if IMPLICIT or HYBRID flow contain an access token
+    if ((flow !== STANDARD) && oauth.access_token && !oauth.code) {
       return this._authSuccess(oauth, oauth)
     }
 
+    // if STANDARD or HYBRID flow contain a code
     if ((flow !== IMPLICIT) && code) {
       const query = {
         code,
@@ -277,7 +279,7 @@ export class Client extends EventEmitter {
     if (!silentLoginRedirectUri) {
       return Promise.reject(new Error('no silentLoginRedirectUri'))
     }
-    return checkSilentLogin(this)
+    return this.checkSilentLogin(this)
       .then(oauth => this._processCallback(oauth))
       .then(() => {
         this._schedule()
