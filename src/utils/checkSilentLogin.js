@@ -12,13 +12,13 @@ export async function checkSilentLogin (client) {
     redirectUri: options.silentLoginRedirectUri
   })
   const iframe = (checkSilentLogin.mock || createIframe)({ src, title: 'oidc-silent-check-sso' })
-  iframe.origin = window.location.origin
+  await iframe.create(window.location.origin)
 
   const handleMessage = (ev) => {
-    const oauth = callback.parse(ev.data)
     iframe.removeListener(handleMessage)
+    const oauth = callback.parse(ev.data)
     if (!oauth) {
-      promise.reject(new Error('silent login failed'))
+      promise.reject(new Error('login_required'))
     } else {
       promise.resolve(oauth)
     }

@@ -21,13 +21,6 @@ export class StatusIframe {
     this.log = log
   }
 
-  origin () {
-    const authUrl = this.client.endpoints.authorize()
-    return (authUrl.charAt(0) === '/')
-      ? window.location.origin
-      : authUrl.substring(0, authUrl.indexOf('/', 8))
-  }
-
   disable () {
     this.enabled = false
   }
@@ -49,7 +42,9 @@ export class StatusIframe {
     }
 
     this.iframe = (this.mock || createIframe)({ src, title: TITLE })
-    this.iframe.load(this.client.endpoints.authorize())
+    await this.iframe.create()
+    this.iframe
+      .load(this.client.endpoints.authorize())
       .then(() => promise.resolve())
 
     const handleMessage = (ev) => {

@@ -10,6 +10,7 @@ export function genRandomData (len) {
   }
 
   // fallback to Math random
+  /* c8 ignore next 5 */
   const array = new Array(len)
   for (let i = 0; i < array.length; i++) {
     array[i] = (Math.random() * 256) | 0

@@ -75,6 +75,41 @@ function hashAccessToken (token) {
   return jsrsasign.hextob64u(left)
 }
 
+function timingSafeEqual (_a, _b) {
+  const a = _a.split('')
+  const b = _b.split('')
+  let diff = (a.length !== b.length)
+  for (let i = 0; i < b.length; i++) {
+    diff |= (a[i] !== b[i])
+  }
+  return (diff === 0)
+}
+
+// https://tools.ietf.org/html/rfc7636
+function verifyPkce (method, challenge, verifier) {
+  if (!method && !challenge && !verifier) {
+    // not in pkce mode
+    return true
+  }
+
+  const methods = { S256: 'sha256' }
+  const algo = methods[method]
+  if (!algo) return false
+
+  const map = {
+    '+': '-',
+    '/': '_',
+    '=': ''
+  }
+  const RE_MAP = /[+/=]/g
+
+  const hash = crypto.createHash(algo)
+  hash.update(Buffer.from(verifier))
+  const comp = hash.digest().toString('base64').replace(RE_MAP, m => map[m])
+
+  return timingSafeEqual(challenge, comp)
+}
+
 // --- server related stuff
 
 const getPaths = ({ host, baseUrl, noCheckSession }) => ({
@@ -168,16 +203,20 @@ ${fs.readFileSync(`${__dirname}/view-session-iframe.js`)}
 
 // --- express middlewares
 
-function logger (req, res, next) {
-  const start = Date.now()
-  res.once('finish', () => {
-    const ms = Date.now() - start
-    const { method, url, body } = req
-    const status = res.statusCode
-    const location = res.getHeader('location')
-    console.log('%s', JSON.stringify({ status, method, url, body, location, ms }))
-  })
-  next()
+function logger ({ silent = false } = {}) {
+  return function logger (req, res, next) {
+    const start = Date.now()
+    res.once('finish', () => {
+      const ms = Date.now() - start
+      const { method, url, body } = req
+      const status = res.statusCode
+      const location = res.getHeader('location')
+      if (!silent) {
+        console.log('%s', JSON.stringify({ status, method, url, body, location, ms }))
+      }
+    })
+    next()
+  }
 }
 
 function bodyParser (req, res, next) {
@@ -216,7 +255,8 @@ export function setup ({
   protocol = 'http:',
   hostname = 'localhost',
   port = 3000,
-  noCheckSession = false
+  noCheckSession = false,
+  silent = false
 } = {}) {
   const jwks = new RsaKey()
   const getOrigin = originF({ protocol, hostname, port })
@@ -231,7 +271,7 @@ export function setup ({
     }
   }
 
-  app.use(logger, cors({ origin: true, credentials: true }))
+  app.use(logger({ silent }), cors({ origin: true, credentials: true }))
 
   app.get('/favicon.ico', (req, res) => {
     res.end()
@@ -249,12 +289,14 @@ export function setup ({
   app.get(paths.authorizationEndpoint, (req, res) => {
     const {
       response_type = '',
-      // scope,
+      scope,
       client_id: aud,
       redirect_uri,
       state,
       response_mode,
-      nonce
+      nonce,
+      code_challenge,
+      code_challenge_method
     } = req.query
     const fragmentize = url => {
       if (response_mode === 'fragment') {
@@ -270,21 +312,24 @@ export function setup ({
 
     let isValidResponseType = false
     let url
+    const responseType = response_type.split(' ')
     const params = { state, session_state: session_state } // we simplify session_state here
     const issuer = `${getOrigin(req.headers)}${baseUrl}`
 
     const { access_token, id_token } = getTokens(jwks, { ...conf, issuer, aud, session_state, nonce })
-    if (response_type.includes('code')) {
+    if (responseType.includes('code')) {
       params.code = uuid4()
-      codes.set(params.code, { session_state, nonce })
+      codes.set(params.code, { session_state, nonce, code_challenge, code_challenge_method })
       isValidResponseType = true
     }
-    if (response_type.includes('token')) {
+    if (responseType.includes('token')) {
       params.access_token = access_token
       params.token_type = 'Bearer'
+      params.expires_in = expiry
+      params.scope = scope
       isValidResponseType = true
     }
-    if (response_type.includes('id_token')) {
+    if (responseType.includes('id_token')) {
       params.id_token = id_token
       isValidResponseType = true
     }
@@ -304,7 +349,8 @@ export function setup ({
       grant_type,
       client_id: aud,
       refresh_token: refreshToken,
-      code
+      code,
+      code_verifier
     } = req.body
 
     let body
@@ -325,7 +371,13 @@ export function setup ({
         body = { error: 'invalid_grant' }
       } else {
         codes.delete(code)
-        body = tokenResponse(foundSession)
+        const { session_state, nonce, code_challenge, code_challenge_method } = foundSession
+        if (!verifyPkce(code_challenge_method, code_challenge, code_verifier)) {
+          res.status(400)
+          body = { error: 'invalid_request', error_description: 'pkce verify failed' }
+        } else {
+          body = tokenResponse({ session_state, nonce })
+        }
       }
     } else if (grant_type === 'refresh_token' && refreshToken) {
       const payload = jwks.verifyToken(refreshToken)

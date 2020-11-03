@@ -1,13 +1,18 @@
 const MESSAGE = 'message'
 
-export class CreateIframe {
-  constructor ({ src, title }) {
+class CreateIframe {
+  constructor (opts) {
+    this._opts = opts
+  }
+
+  async create (origin) {
+    this.origin = origin
+    const { src, title } = this._opts
     const iframe = this._iframe = document.createElement('iframe')
     iframe.setAttribute('src', src)
     iframe.setAttribute('title', title)
     iframe.style.display = 'none'
     document.body.appendChild(iframe)
-    this.origin = undefined
   }
 
   load (url) {

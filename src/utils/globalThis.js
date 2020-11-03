@@ -5,12 +5,12 @@ export const _globalThis = (() => {
     return globalThis
   }
 
-  /* istanbul ignore next */
+  /* c8 ignore next 3 */
   if (typeof window !== 'undefined') {
     return window
   }
 
-  /* istanbul ignore next */
+  /* c8 ignore next 3 */
   if (typeof global !== 'undefined') {
     return global
   }

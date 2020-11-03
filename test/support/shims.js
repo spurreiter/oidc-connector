@@ -9,13 +9,11 @@ function digest (algorithm, buffer) {
   }
   const hash = crypto.createHash(map[algorithm])
   hash.update(buffer)
-  return hash.digest().buffer
+  return Promise.resolve(hash.digest().buffer)
 }
 
 function getRandomValues (uint8Array) {
-  for (let i = 0; i < uint8Array.length; i++) {
-    uint8Array[i] = crypto.randomBytes(1)
-  }
+  crypto.randomFillSync(uint8Array)
 }
 
 if (!global.crypto) {
