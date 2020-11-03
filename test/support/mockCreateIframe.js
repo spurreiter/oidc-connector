@@ -1,7 +1,5 @@
 import request from 'superagent'
 
-const MESSAGE = 'message'
-
 class MockStatusCreateIframe {
   constructor (opts) {
     this._opts = opts

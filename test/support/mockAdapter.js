@@ -29,6 +29,6 @@ export class MockAdapter {
   }
 
   async logout () {
-    console.log('logout', new Error())
+    // console.log('logout', new Error())
   }
 }

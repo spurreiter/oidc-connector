@@ -11,7 +11,7 @@ describe('test/support/server', function () {
   const cache = {}
 
   before(function () {
-    this.app = setup({ port })
+    this.app = setup({ port, silent: true })
   })
 
   describe('configuration', function () {

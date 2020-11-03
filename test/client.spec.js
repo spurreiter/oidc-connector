@@ -27,7 +27,7 @@ function params (url) {
 }
 
 describe('Client', function () {
-  const port = 3000
+  const port = 3001
   const origin = 'http://example.org/'
 
   before(function () {
@@ -40,7 +40,7 @@ describe('Client', function () {
     this.jsdom()
   })
   before(function () {
-    this.server = setup({ port, silent: false }).listen(port)
+    this.server = setup({ port, silent: true }).listen(port)
   })
   after(function () {
     this.server.close()
