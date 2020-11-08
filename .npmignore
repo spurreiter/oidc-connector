@@ -2,8 +2,9 @@ coverage/
 example/
 node_modules/
 test/
+tmp/
 
 .*
 *.log
 *.tgz
-NOTES.md
+*.config.*js

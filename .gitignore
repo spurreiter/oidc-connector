@@ -3,8 +3,8 @@ dist/
 esm/
 node_modules/
 example/index.js
+tmp/
 
 .DS_Store
 *.log
 *.tgz
-NOTES.md
