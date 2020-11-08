@@ -24,6 +24,7 @@ Verified to work with following OIDC servers
 - [keycloak][]
 - [Auth0](https://auth0.com)
 - [okta](https://okta.com)
+- [oidc-provider](https://github.com/panva/node-oidc-provider)
 
 <small>*) If you have successfully used this client with other OIDC Servers
 please let us know through a PR or Issue.</small>
