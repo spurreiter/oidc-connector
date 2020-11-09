@@ -224,6 +224,39 @@ interface Logger {
   error?: (...args: any) => void;
 }
 
+interface Tokens {
+  /**
+   * raw access token
+   */
+  token?: string;
+  /**
+   * payload of access token (only if JWT)
+   */
+  tokenParsed?: object;
+  /**
+   * raw id token
+   */
+  idToken?: string;
+  /**
+   * payload of id token
+   */
+  idTokenParsed?: object;
+  /**
+   * raw refresh token
+   */
+  refreshToken?: string;
+  /**
+   * payload of refresh token (only if JWT)
+   */
+  refreshTokenParsed?: object;
+  /**
+   * obtain claim by claim name. E.g. `sub` returns subject
+   * First id token payload is checked. If not available then access token
+   * payload is queried.
+   */
+  claim: (claimName: string) => string | number | undefined;
+}
+
 export class Adapter {
   constructor (opts?: object);
   initialize(client: Client): any;
@@ -232,9 +265,10 @@ export class Adapter {
    */
   redirectUri(): string;
   /**
-   * start login
+   * Starts login procedure
+   * if prompt='none' is set then login will not prompt for credentials.
    */
-  login(): Promise<undefined>;
+  login(opts?: {prompt?: 'none'}): Promise<undefined>;
   /**
    * start logout
    */
@@ -277,13 +311,24 @@ export class Client {
    */
   off (eventName: eventName, listener: Function) : void;
   /**
-   * starts login
+   * return all available tokens and its parsed payload
    */
-  login () : Promise<any>;
+  getTokens(): Tokens;
+
+  accessToken(): Promise<Tokens.token>
   /**
-   * starts silent login
+   * Starts login procedure
+   * if prompt='none' is set then login will not prompt for credentials.
    */
-  silentLogin () : Promise<any>;
+  login(opts?: {prompt?: 'none'}): Promise<undefined>;
+  /**
+   * Silent login checks via iframe if auth session exists.
+   * Requires option `silentLoginRedirectUri` with server side redirect page.
+   * May be blocked if rejecting 3rd party cookies.
+   * If opts.prompt is set then `login()` will be started.
+   * For `{prompt: 'login'}` user is prompted for credentials.
+   */
+  silentLogin (opts?: {prompt?: 'none'|'login'}): Promise<undefined>;
   /**
    * starts logout
    */

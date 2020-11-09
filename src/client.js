@@ -269,24 +269,52 @@ export class Client extends EventEmitter {
     return !isExpired && token
   }
 
+  /**
+   * Starts login procedure
+   * @param {Object} [opts={}]
+   * @param {string} [opts.prompt='login'] - 'login'|'none' if set to 'none'
+   *                 then login will not prompt for credentials.
+   * @return {Promise}
+   */
   async login (opts = {}) {
     opts.prompt = opts.prompt || LOGIN
     return this.adapter.login(opts)
   }
 
-  async silentLogin () {
-    const { silentLoginRedirectUri } = this.options
-    if (!silentLoginRedirectUri) {
+  /**
+   * Silent login checks via iframe if auth session exists.
+   * Requires option `silentLoginRedirectUri` with server side redirect page.
+   * May be blocked if rejecting 3rd party cookies.
+   * If opts.prompt is set then `login()` will be started.
+   * For `{prompt: 'login'}` user is prompted for credentials.
+   * @return {Promise}
+   */
+  async silentLogin (opts) {
+    if (!this.options.silentLoginRedirectUri) {
+      if (opts.prompt) {
+        return this.login(opts)
+      }
       return Promise.reject(new Error('no silentLoginRedirectUri'))
     }
-    return this.checkSilentLogin(this)
-      .then(oauth => this._processCallback(oauth))
-      .then(() => {
-        this._schedule()
-        return this._handleToken()
-      })
+
+    try {
+      const oauth = await this.checkSilentLogin(this)
+      await this._processCallback(oauth)
+      this._schedule()
+      return this._handleToken()
+    } catch (err) {
+      if (opts.prompt) {
+        return this.login(opts)
+      }
+      return Promise.reject(err)
+    }
   }
 
+  /**
+   * Logout from auth session using end_session_endpoint.
+   * No token revocation will be made.
+   * @return {Promise}
+   */
   async logout () {
     const { idToken } = this.getTokens()
     this.statusIframe.clearSchedule()

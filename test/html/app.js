@@ -51,7 +51,7 @@ import Client from '../../src/index.js'
       url: { type: 'text' },
       realm: { type: 'text' },
       clientId: { type: 'text' },
-      // forceLogin: { type: 'checkbox' },
+      forceLogin: { type: 'checkbox' },
       forceLogout: { type: 'checkbox' },
       scope: { type: 'text' },
       useNonce: { type: 'checkbox' },
