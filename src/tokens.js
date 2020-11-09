@@ -128,13 +128,7 @@ export class Tokens {
   }
 
   getTokens () {
-    const obj = ['token', 'idToken', 'refreshToken'].reduce((o, key) => {
-      const parsed = key + 'Parsed'
-      o[key] = this[key]
-      o[parsed] = this[parsed]
-      return o
-    }, {})
-    return obj
+    return new TokenClaims(this)
   }
 
   clearTokens () {
@@ -143,18 +137,6 @@ export class Tokens {
 
   sessionState () {
     return claim(this, SESSION_STATE, '')
-  }
-
-  subject () {
-    return claim(this, 'sub')
-  }
-
-  realmAccess () {
-    return get(this, 'tokenParsed.realm_access')
-  }
-
-  resourceAccess () {
-    return get(this, 'tokenParsed.resource_access')
   }
 
   /**
@@ -237,5 +219,19 @@ class Store {
       id_token: this.store.getItem(ID_TOKEN),
       expiresAt: this.store.getItem(TOKEN_EXPIRES_AT)
     }
+  }
+}
+
+class TokenClaims {
+  constructor (tokens) {
+    ;['token', 'idToken', 'refreshToken'].forEach((key) => {
+      const parsed = key + 'Parsed'
+      this[key] = tokens[key]
+      this[parsed] = tokens[parsed]
+    })
+  }
+
+  claim (claimName) {
+    return claim(this, claimName)
   }
 }

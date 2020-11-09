@@ -67,6 +67,7 @@ describe('tokens', function () {
       assert.strictEqual(typeof r.tokenParsed, 'object')
       assert.strictEqual(typeof r.idTokenParsed, 'object')
       assert.strictEqual(typeof r.refreshTokenParsed, 'object')
+      assert.strictEqual(r.claim('sub'), 'f:uuid:subject')
     })
 
     it('shall load tokens from localStorage', function () {
@@ -86,18 +87,6 @@ describe('tokens', function () {
 
     it('shall get session state', function () {
       assert.strictEqual(tokens.sessionState(), 'mystate')
-    })
-
-    it('shall get subject', function () {
-      assert.strictEqual(tokens.subject(), 'f:uuid:subject')
-    })
-
-    it('shall get realmAccess', function () {
-      assert.deepStrictEqual(tokens.realmAccess(), { roles: ['read'] })
-    })
-
-    it('shall get resourceAccess', function () {
-      assert.deepStrictEqual(tokens.resourceAccess(), { client: { roles: ['read', 'write'] } })
     })
 
     it('shall expire in', function () {
@@ -150,18 +139,6 @@ describe('tokens', function () {
 
     it('shall get session state from id token', function () {
       assert.strictEqual(tokens.sessionState(), 'mystate')
-    })
-
-    it('shall get subject', function () {
-      assert.strictEqual(tokens.subject(), 'f:uuid:subject')
-    })
-
-    it('shall not get realmAccess', function () {
-      assert.strictEqual(tokens.realmAccess(), undefined)
-    })
-
-    it('shall not get resourceAccess', function () {
-      assert.strictEqual(tokens.resourceAccess(), undefined)
     })
 
     it('shall expire in', function () {
