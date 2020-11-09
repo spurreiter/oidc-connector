@@ -289,7 +289,7 @@ export class Client extends EventEmitter {
    * For `{prompt: 'login'}` user is prompted for credentials.
    * @return {Promise}
    */
-  async silentLogin (opts) {
+  async silentLogin (opts = {}) {
     if (!this.options.silentLoginRedirectUri) {
       if (opts.prompt) {
         return this.login(opts)
