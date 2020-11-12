@@ -47,6 +47,7 @@
     "dev:server": "nodemon test/support/server.js",
     "example": "webpack && node example/server.js",
     "lint": "eslint --fix \"**/*.js\" \"**/*.cjs\"",
+    "prepublishOnly": "npm run all",
     "test": "mocha"
   },
   "dependencies": {},
