@@ -58,18 +58,26 @@ await client.init().catch(err => {
   // react here on initialization errors; error is also emitted as event
 })
 
-// trigger explicit login from
+/**
+ * Starts login procedure
+ * User will always be prompted for credentials.
+ */
 await client.login().catch(err => {
   // react here on login errors; error is also emitted as event
 })
 
-// use silent login using iframe (may be blocked as it requires 3rd party cookies)
-// requires configuration of `silentLoginRedirectUri` option.
-// If `forceLogin` option is set then `login()` without prompting user for
-// credentials will be started. 
-await client.silentLogin().catch(err => {
+/**
+ * Silent login checks via iframe if auth session exists.
+ * Requires option `silentLoginRedirectUri` with server side redirect page.
+ * May be blocked if 3rd party cookies are rejected by browser.
+ * The below snippet tries firtly to login a user silently (assuming user is
+ * already logged-in) to later redirect to the auth server for final login.
+ */
+await client.silentLogin({prompt: 'none'}).catch(err => {
   if (err.message === 'login_required') {
-    client.login().catch(err => { ... })
+    client.login().catch(err => {
+      // Oops could not login user...
+    })
   }
 })
 ```
@@ -94,16 +102,13 @@ if (res.status === 200) {
 
 ## Configuration
 
+<details>
+  <summary>Client Configuration Options</summary>
+
 _from [./src/client.d.ts](./src/client.d.ts)_
 
 <!-- include (./src/client.d.ts lang=ts) -->
 ```ts
-type ResponseMode = 'query'|'fragment';
-type ResponseType = 'code'|'id_token token'|'code id_token token';
-type PkceMethod = 'S256';
-
-type Url = string;
-
 interface Options {
   /**
    * URL to the OIDC server.
@@ -357,43 +362,6 @@ interface Tokens {
   claim: (claimName: string) => string | number | undefined;
 }
 
-export class Adapter {
-  constructor (opts?: object);
-  initialize(client: Client): any;
-  /**
-   * return default redirect uri
-   */
-  redirectUri(): string;
-  /**
-   * Starts login procedure
-   * if prompt='none' is set then login will not prompt for credentials.
-   */
-  login(opts?: {prompt?: 'none'}): Promise<undefined>;
-  /**
-   * start logout
-   */
-  logout(): Promise<undefined>;
-  /**
-   * Start login with register
-   * May not be supported on all OIDC servers.
-   * Uses `/registrations` endpoint which needs to be accessible on same level as
-   * authorization endpoint.
-   * E.g. authorization_endpoint is https://oidcserver/auth/authorize then
-   * https://oidcserver/auth/registrations is used
-   * May be overwritten in client options using oidcConfig.register_endpoint
-   */
-  register(): Promise<undefined>;
-  /**
-   * access account information
-   * May not be supported on all OIDC servers.
-   * Uses `./account` endpoint relative to `url`
-   * E.g. url = https://oidcserver/auth then https://oidcserver/auth/account is
-   * used.
-   * May be overwritten in client options using oidcConfig.account_endpoint
-   */
-  account(): Promise<undefined>;
-}
-
 type eventName = 'token'|'error'|'logout'|'action'
 
 export class Client {
@@ -414,19 +382,24 @@ export class Client {
    * return all available tokens and its parsed payload
    */
   getTokens(): Tokens;
-
+  /**
+   * asynchonously return access token
+   */
   accessToken(): Promise<Tokens.token>
   /**
    * Starts login procedure
-   * if prompt='none' is set then login will not prompt for credentials.
+   * User will always be prompted for credentials.
+   * Set prompt='none' if login shall not prompt for credentials.
    */
   login(opts?: {prompt?: 'none'}): Promise<undefined>;
   /**
    * Silent login checks via iframe if auth session exists.
    * Requires option `silentLoginRedirectUri` with server side redirect page.
-   * May be blocked if rejecting 3rd party cookies.
+   * May be blocked if 3rd party cookies are rejected by browser.
    * If opts.prompt is set then `login()` will be started.
    * For `{prompt: 'login'}` user is prompted for credentials.
+   * With `{prompt: 'none'}` user is not prompted for credentials (has same effect
+   * as with `silentLoginRedirectUri` but with page redirects)
    */
   silentLogin (opts?: {prompt?: 'none'|'login'}): Promise<undefined>;
   /**
@@ -445,15 +418,17 @@ export class Client {
 ```
 <!-- /include -->
 
+</details>
+
 ## Testing
 
-Utility function are tested with jsdom
+Utility functions and client are tested with jsdom.
 
 ```bash
 npm t
 ```
 
-The Client can be tested with running in different terminals
+The Client can be tested with client and server running in different terminals.
 
 ```bash
 # starts app on localhost:8000

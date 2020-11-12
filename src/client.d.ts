@@ -314,19 +314,24 @@ export class Client {
    * return all available tokens and its parsed payload
    */
   getTokens(): Tokens;
-
+  /**
+   * asynchonously return access token
+   */
   accessToken(): Promise<Tokens.token>
   /**
    * Starts login procedure
-   * if prompt='none' is set then login will not prompt for credentials.
+   * User will always be prompted for credentials.
+   * Set prompt='none' if login shall not prompt for credentials.
    */
   login(opts?: {prompt?: 'none'}): Promise<undefined>;
   /**
    * Silent login checks via iframe if auth session exists.
    * Requires option `silentLoginRedirectUri` with server side redirect page.
-   * May be blocked if rejecting 3rd party cookies.
+   * May be blocked if 3rd party cookies are rejected by browser.
    * If opts.prompt is set then `login()` will be started.
    * For `{prompt: 'login'}` user is prompted for credentials.
+   * With `{prompt: 'none'}` user is not prompted for credentials (has same effect
+   * as with `silentLoginRedirectUri` but with page redirects)
    */
   silentLogin (opts?: {prompt?: 'none'|'login'}): Promise<undefined>;
   /**
