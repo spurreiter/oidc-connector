@@ -36,6 +36,10 @@ import Client from '../../src/index.js'
     redirectUri: '',
     postLogoutRedirectUri: '',
     authorizationParams: {}
+    // oidcConfig: {
+    //   authorization_endpoint: 'https://localhost:9443/oauth2/authorize',
+    //   token_endpoint: 'https://localhost:9443/oauth2/token'
+    // }
   }
 
   // --- rendering ---
@@ -150,6 +154,9 @@ import Client from '../../src/index.js'
     store(opts)
     // console.log(localStorage.getItem('my-app'))
     opts.log = console
+    if (options.oidcConfig) {
+      opts.oidcConfig = options.oidcConfig
+    }
     return opts
   }
 
@@ -175,7 +182,9 @@ import Client from '../../src/index.js'
 
   let client
   function setupClient () {
-    client = new Client(getSettings())
+    const opts = getSettings()
+    // console.log(opts)
+    client = new Client(opts)
 
     client.on('token', tokens => {
       console.log(tokens)
