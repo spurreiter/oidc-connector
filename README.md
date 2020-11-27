@@ -43,7 +43,13 @@ const client = new Client({
 
 // subscribe to events
 client.on('token', ({token, tokenParsed}) => {
-  // do sth. with the tokens
+  if (!tokens.token) {
+    startSilentLogin()
+    // alternatively you may use
+    // startLogin()
+  } else {
+    // do sth. with the tokens
+  }
 })
 client.on('logout', () => {
   // option `forceLogout` is set to true by default; No need to react here
@@ -57,31 +63,34 @@ client.on('action', ({status}) => {
 
 // always initialize on page load!!!
 await client.init().catch(err => {
-  // react here on initialization errors; error is also emitted as event
+  // react here on initialisation errors; error is also emitted as event
+  startLogin()
 })
 
 /**
  * Starts login procedure
  * User will always be prompted for credentials.
  */
-await client.login().catch(err => {
-  // react here on login errors; error is also emitted as event
-})
+const startLogin = () => {
+  client.login().catch(err => {
+    // react here on login errors; error is also emitted as event
+  })
+}
 
 /**
  * Silent login checks via iframe if auth session exists.
  * Requires option `silentLoginRedirectUri` with server side redirect page.
  * May be blocked if 3rd party cookies are rejected by browser.
- * The below snippet tries firtly to login a user silently (assuming user is
- * already logged-in) to later redirect to the auth server for final login.
+ * The below snippet tries to login a user silently (assuming user is
+ * already logged-in) at first to later redirect to the auth server for final login.
  */
-await client.silentLogin({prompt: 'none'}).catch(err => {
-  if (err.message === 'login_required') {
-    client.login().catch(err => {
-      // Oops could not login user...
-    })
-  }
-})
+const startSilentLogin = () => {
+  client.silentLogin({prompt: 'none'}).catch(err => {
+    if (err.message === 'login_required') {
+      startLogin ()
+    }
+  })
+}
 ```
 
 for later using the token in communications (e.g. RESTful)
@@ -250,6 +259,11 @@ interface Options {
    * ```
    */
   silentLoginRedirectUri?: string;
+  /**
+   * Seconds to wait for the silent login redirect iframe to load
+   * @default 5
+   */
+  silentLoginWait?: number;
   /**
    * log output using `log.info` and `log.error`
    * example: {log: console, ...}
