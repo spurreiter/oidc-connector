@@ -41,11 +41,13 @@ export class StatusIframe {
       return promise
     }
 
+    const url = this.client.endpoints.authorize()
+    const nextOrigin = (url.charAt(0) === '/')
+      ? window.location.origin
+      : url.substring(0, url.indexOf('/', 8))
+
     this.iframe = (this.mock || createIframe)({ src, title: TITLE })
-    await this.iframe.create()
-    this.iframe
-      .load(this.client.endpoints.authorize())
-      .then(() => promise.resolve())
+    await this.iframe.create(null, () => promise.resolve(), nextOrigin)
 
     const handleMessage = (ev) => {
       if (![UNCHANGED, CHANGED, ERROR].includes(ev.data)) {

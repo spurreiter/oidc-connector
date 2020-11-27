@@ -31,6 +31,7 @@ describe('utils/initOptions', function () {
       prompt: 'none',
       minValidity: 15,
       expiryInterval: 5,
+      silentLoginWait: 5,
       scope: 'openid'
     })
   })
@@ -47,7 +48,8 @@ describe('utils/initOptions', function () {
       minValidity: '##',
       foo: 'bar',
       log: '##',
-      scope: 'email'
+      scope: 'email',
+      silentLoginWait: 5
     })
     log(opts)
 
@@ -67,7 +69,8 @@ describe('utils/initOptions', function () {
       minValidity: 15,
       expiryInterval: 5,
       foo: 'bar',
-      scope: 'openid email'
+      scope: 'openid email',
+      silentLoginWait: 5
     })
   })
 })

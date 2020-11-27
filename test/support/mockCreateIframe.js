@@ -7,16 +7,11 @@ class MockStatusCreateIframe {
     this.count = 0
   }
 
-  async create () {}
-
-  async load (url) {
-    return new Promise(resolve => {
-      const origin = (url.charAt(0) === '/')
-        ? window.location.origin
-        : url.substring(0, url.indexOf('/', 8))
-      this.origin = origin
-      resolve()
-    })
+  async create (origin, onLoad, nextOrigin) {
+    if (onLoad) {
+      this.origin = nextOrigin || origin
+      onLoad()
+    }
   }
 
   addListener (handleMessage) {

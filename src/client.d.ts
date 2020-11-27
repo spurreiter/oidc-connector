@@ -144,6 +144,11 @@ interface Options {
    */
   silentLoginRedirectUri?: string;
   /**
+   * Seconds to wait for the silent login redirect iframe to load
+   * @default 5
+   */
+  silentLoginWait?: number;
+  /**
    * log output using `log.info` and `log.error`
    * example: {log: console, ...}
    */

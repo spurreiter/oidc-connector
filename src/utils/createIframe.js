@@ -5,27 +5,20 @@ class CreateIframe {
     this._opts = opts
   }
 
-  async create (origin) {
+  async create (origin, onLoad, nextOrigin) {
     this.origin = origin
     const { src, title } = this._opts
     const iframe = this._iframe = document.createElement('iframe')
+    if (onLoad) {
+      iframe.addEventListener('load', () => {
+        this.origin = nextOrigin || origin
+        onLoad()
+      })
+    }
     iframe.setAttribute('src', src)
     iframe.setAttribute('title', title)
     iframe.style.display = 'none'
     document.body.appendChild(iframe)
-  }
-
-  load (url) {
-    return new Promise(resolve => {
-      const origin = (url.charAt(0) === '/')
-        ? window.location.origin
-        : url.substring(0, url.indexOf('/', 8))
-
-      this._iframe.addEventListener('load', () => {
-        this.origin = origin
-        resolve()
-      })
-    })
   }
 
   addListener (handleMessage) {

@@ -62,6 +62,7 @@ export function initOptions (options = {}) {
     minValidity: set(number(options.minValidity), 15),
     expiryInterval: set(number(options.expiryInterval), 5),
     pkce: set(func(options.pkce), pkce),
+    silentLoginWait: set(number(options.silentLoginWait), 5),
     log
   }
 
