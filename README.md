@@ -27,6 +27,7 @@ Verified to work with following OIDC servers
 - [fusionauth](https://fusionauth.io)
 - [ory/hydra](https://www.ory.sh/hydra/)
 - [oidc-provider](https://github.com/panva/node-oidc-provider)
+- [OpenAM](https://www.openidentityplatform.org/openam)
 
 <small>*) If you have successfully used this client with other OIDC Servers
 please let us know through a PR or Issue.</small>
@@ -136,6 +137,16 @@ interface Options {
    * Client identifier example: 'my-app'
    */
   clientId: string;
+  /**
+   * Client Secret (for servers which require basic-auth)
+   * token_endpoint_auth_methods_supported: ['client_secret_basic']
+   */
+  clientSecret?: string;
+  /**
+   * Send Client Secret in POST body. 
+   * token_endpoint_auth_methods_supported: ['client_secret_post']
+   */
+  clientSecretPost?: boolean;
   /**
    * Specifies a default uri to redirect to after login or logout.
    */

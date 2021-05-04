@@ -138,7 +138,7 @@ export class Client extends EventEmitter {
       }
       const url = this.endpoints.createTokenUrl()
       this.tokens.startTokenRequest()
-      const res = await fetchToken(url, query)
+      const res = await fetchToken(url, query, this.options)
       if (res.status === 200) {
         const tokenResponse = await res.json()
         return this._authSuccess(tokenResponse, oauth)
@@ -196,7 +196,7 @@ export class Client extends EventEmitter {
       }
       const url = this.endpoints.createTokenUrl()
       this.tokens.startTokenRequest()
-      const res = await fetchToken(url, query)
+      const res = await fetchToken(url, query, this.options)
       if (res.status === 200) {
         log.info('token refreshed')
         const tokenResponse = await res.json()
@@ -350,10 +350,18 @@ export class Client extends EventEmitter {
   }
 }
 
-async function fetchToken (url, query) {
+async function fetchToken (url, query, { clientId, clientSecret, clientSecretPost } = {}) {
+  const headers = { 'Content-Type': TYPE_URLENCODED, Accept: 'application/json' }
+  if (clientSecret) {
+    if (clientSecretPost) {
+      query.clientSecret = clientSecret
+    } else {
+      headers.Authorization = `Basic ${btoa(`${clientId}:${clientSecret}`)}`
+    }
+  }
   return fetch(url, {
     method: 'POST',
-    headers: { 'Content-Type': TYPE_URLENCODED, Accept: 'application/json' },
+    headers,
     // mode: 'no-cors',
     body: urlEncoded(query)
   })

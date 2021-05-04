@@ -21,6 +21,16 @@ interface Options {
    */
   clientId: string;
   /**
+   * Client Secret (for servers which require basic-auth)
+   * token_endpoint_auth_methods_supported: ['client_secret_basic']
+   */
+  clientSecret?: string;
+  /**
+   * Send Client Secret in POST body. 
+   * token_endpoint_auth_methods_supported: ['client_secret_post']
+   */
+  clientSecretPost?: boolean;
+  /**
    * Specifies a default uri to redirect to after login or logout.
    */
   redirectUri?: Url;
