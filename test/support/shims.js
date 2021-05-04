@@ -31,11 +31,11 @@ if (!global.crypto.subtle.digest) {
 
 if (!global.atob) {
   global.atob = function atob (str) {
-    return Buffer.from(str, 'binary').toString('base64')
+    return Buffer.from(str, 'base64').toString('binary')
   }
 }
 if (!global.btoa) {
   global.btoa = function btoa (str) {
-    return Buffer.from(str, 'base64').toString('binary')
+    return Buffer.from(str, 'binary').toString('base64')
   }
 }
