@@ -53,7 +53,7 @@ describe('Client', function () {
     url: `http://localhost:${port}/oidc`,
     clientId: 'test',
     useStatusIframe: false,
-    useLocalStorage: false,
+    storage: 'memory',
     adapter: new MockAdapter()
   }
 

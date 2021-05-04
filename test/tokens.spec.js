@@ -4,6 +4,7 @@ import sinon from 'sinon'
 import debug from 'debug'
 import { Tokens } from '../src/tokens.js'
 import { createToken } from './support/createToken.js'
+import './support/shims.js'
 
 const log = debug('test')
 
@@ -205,8 +206,8 @@ describe('tokens', function () {
     let tokensPre
     let tokens
     before(function () {
-      tokensPre = new Tokens({ log: _log, useLocalStorage: true })
-      tokens = new Tokens({ log: _log, useLocalStorage: true })
+      tokensPre = new Tokens({ log: _log })
+      tokens = new Tokens({ log: _log })
     })
 
     it('shall set tokens', function () {
@@ -228,7 +229,7 @@ describe('tokens', function () {
   describe('localStorage turned off', function () {
     let tokens
     before(function () {
-      tokens = new Tokens({ log: _log, useLocalStorage: false })
+      tokens = new Tokens({ log: _log, storage: 'none' })
     })
 
     it('shall ignore loading tokens', function () {

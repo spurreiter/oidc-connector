@@ -1,4 +1,5 @@
 import crypto from 'crypto'
+import { MemoryStorage } from '../../src/utils/storage.js'
 
 function digest (algorithm, buffer) {
   const map = {
@@ -27,6 +28,9 @@ if (!global.crypto.subtle) {
 }
 if (!global.crypto.subtle.digest) {
   global.crypto.subtle.digest = digest
+}
+if (!global.localStorage) {
+  global.localStorage = new MemoryStorage()
 }
 
 if (!global.atob) {

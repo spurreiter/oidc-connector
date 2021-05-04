@@ -52,7 +52,6 @@ export function initOptions (options = {}) {
     forceLogin: set(options.forceLogin, false),
     forceLogout: set(options.forceLogout, true),
     useNonce: set(options.useNonce, true),
-    useLocalStorage: set(options.useLocalStorage, true),
     useStatusIframe: set(options.useStatusIframe, true),
     statusIframeInterval: set(number(options.statusIframeInterval), 5),
     responseMode: set(options.responseMode, [FRAGMENT, QUERY]),

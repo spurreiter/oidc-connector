@@ -24,7 +24,7 @@ import Client from '../../src/index.js'
     forceLogout: true,
     scope: 'openid',
     useNonce: true,
-    useLocalStorage: true,
+    storage: 'local',
     minValidity: 15,
     expiryInterval: 5,
     responseMode: 'fragment',
@@ -63,7 +63,14 @@ import Client from '../../src/index.js'
       forceLogout: { type: 'checkbox' },
       scope: { type: 'text' },
       useNonce: { type: 'checkbox' },
-      useLocalStorage: { type: 'checkbox' },
+      storage: {
+        options: [
+          'local',
+          'session',
+          'memory',
+          'none'
+        ]
+      },
       minValidity: { type: 'text' },
       expiryInterval: { type: 'text' },
       responseMode: { options: ['fragment', 'query'] },

@@ -69,10 +69,10 @@ interface Options {
    */
   useNonce?: boolean;
   /**
-   * Uses localStorage to store received tokens.
-   * @default true
+   * storage used to store received tokens.
+   * @default 'local'
    */
-  useLocalStorage: boolean;
+  storage?: 'local'|'session'|'memory'|'none';
   /**
    * minimum validity of an access_token before expiry.
    * If expiry is less than minValidity new access_token is requested using a

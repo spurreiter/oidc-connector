@@ -1,4 +1,4 @@
-import { decodeToken, get, LocalStorage } from './utils/index.js'
+import { decodeToken, get, storage } from './utils/index.js'
 
 import {
   SESSION_STATE
@@ -11,13 +11,13 @@ const toNumber = (num, def) => !isNaN(Number(num)) ? Number(num) : def
 const claim = (t, claim, def) => get(t, ['idTokenParsed', claim], get(t, ['tokenParsed', claim], def))
 
 export class Tokens {
-  constructor ({ log, useNonce, minValidity, useLocalStorage = true } = {}) {
+  constructor ({ log, useNonce, minValidity, storage = 'local' } = {}) {
     this.log = log
     this._useNonce = useNonce
     this._authenticated = false
     this._timeSkew = 0
     this._expiresAt = 0
-    this._store = new Store(useLocalStorage)
+    this._store = new Store(storage)
     this._minValidity = minValidity
   }
 
@@ -185,10 +185,9 @@ const ID_TOKEN = 'oidc-id-token'
 const REFRESH_TOKEN = 'oidc-refresh-token'
 
 class Store {
-  constructor (useLocalStorage) {
-    try {
-      this.store = useLocalStorage ? new LocalStorage() : undefined
-    } catch (e) {}
+  constructor (type) {
+    if (!type || type === 'none') return
+    this.store = storage(type, 'memory')
   }
 
   _set (key, token) {

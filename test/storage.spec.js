@@ -15,7 +15,11 @@ describe('utils/storage', function () {
   })
 
   describe('storage', function () {
-    it('livecycle localStorage', function () {
+    before(function () {
+      storage().clear()
+    })
+
+    it('lifecycle localStorage', function () {
       const ls = storage()
       assert.ok(ls instanceof LocalStorage)
       ls.setItem('a', 1)
@@ -27,7 +31,7 @@ describe('utils/storage', function () {
       assert.strictEqual(ls.getItem('a'), null)
     })
 
-    it('livecycle cookieStorage', function () {
+    it('lifecycle cookieStorage', function () {
       const ls = storage('cookie')
       assert.ok(ls instanceof CookieStorage)
       ls.setItem('a', 1)

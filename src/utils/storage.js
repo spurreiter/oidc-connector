@@ -1,40 +1,33 @@
-function min2ms (min) {
-  return min * 60000
-}
+import { getCookie, getCookies, setCookie, min2ms } from './cookie.js'
+import { _globalThis } from './globalThis.js'
 
-function getCookie (key) {
-  const name = key + '='
-  const ca = document.cookie.split(';')
-  for (let i = 0; i < ca.length; i++) {
-    const c = ca[i].trimStart()
-    if (c.indexOf(name) === 0) {
-      return decodeURIComponent(c.substring(name.length, c.length))
-    }
+export class MemoryStorage {
+  constructor () {
+    this.items = {}
   }
-  return ''
-}
 
-function getCookies () {
-  const obj = {}
-  const ca = document.cookie.split(';')
-  for (let i = 0; i < ca.length; i++) {
-    const c = ca[i].trimStart()
-    const [_, key, value] = /^([^=]+)=(.*)$/.exec(c) // eslint-disable-line no-unused-vars
-    obj[key] = decodeURIComponent(value)
+  keys () {
+    return this.items
   }
-  return obj
-}
 
-function cookieExpiration (minutes) {
-  const exp = new Date()
-  exp.setTime(exp.getTime() + min2ms(minutes))
-  return exp
-}
+  getItem (key) {
+    const value = this.items[key]
+    return (value !== undefined)
+      ? value
+      : null
+  }
 
-function setCookie (key, value, minutes) {
-  const expirationDate = cookieExpiration(minutes)
-  const cookie = `${key}=${encodeURIComponent(value)}; expires=${expirationDate.toUTCString()}; `
-  document.cookie = cookie
+  setItem (key, value) {
+    this.items[key] = value
+  }
+
+  removeItem (key) {
+    delete this.items[key]
+  }
+
+  clear () {
+    this.items = {}
+  }
 }
 
 export class CookieStorage {
@@ -62,17 +55,19 @@ export class CookieStorage {
 export class LocalStorage {
   /**
    * [constructor description]
-   * @param {object} [type] - window.sessionStorage
+   * @param {object} [store] - window.sessionStorage
    */
-  constructor (type) {
+  constructor (store) {
     const test = '##-test'
-    this._store = type || window.localStorage
+    this._store = store || _globalThis.localStorage
     this._store.setItem(test, test)
     this._store.removeItem(test)
   }
 
   keys () {
-    return this._store
+    return typeof this._store.keys === 'function'
+      ? this._store.keys()
+      : this._store
   }
 
   getItem (key) {
@@ -93,18 +88,37 @@ export class LocalStorage {
   }
 }
 
-export function storage (type) {
+/**
+ * Obtain token storage. Fallback is type='cookie'
+ * @param {string} [type='local'] - 'cookie|local|session|memory'
+ * @returns {Storage}
+ */
+export function storage (type, fallbackType) {
+  if (type === 'memory') {
+    return new MemoryStorage()
+  }
   if (type === 'cookie') {
     return new CookieStorage()
   }
   try {
-    return new LocalStorage(type)
+    if (type === 'session') {
+      return new LocalStorage(_globalThis.sessionStorage)
+    }
+    return new LocalStorage()
   } catch (e) {
+    if (fallbackType === 'memory') {
+      return new MemoryStorage()
+    }
     return new CookieStorage()
   }
 }
 
 export class CallbackStorage {
+  /**
+   * Obtain token storage. Fallback is type='cookie'
+   * @param {string} [type='local'] - 'cookie|local|session|memory'
+   * @returns {Storage}
+   */
   constructor (type) {
     this._callback = 'oidc-callback-'
     this._store = storage(type)
