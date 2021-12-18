@@ -58,6 +58,7 @@ export class Client extends EventEmitter {
     this.checkSilentLogin = checkSilentLogin
     // try to load tokens
     this.tokens.fromInitOptions(this.options)
+    this.isInitialized = false
   }
 
   async init () {
@@ -72,6 +73,7 @@ export class Client extends EventEmitter {
       this.endpoints = endpoints(serverUrl, oidcConfig, this.callback)
       this.adapter.initialize(this)
       this.options.redirectUri = this.adapter.redirectUri()
+      this.isInitialized = true
       log.info('oidcConfig loaded %o', oidcConfig)
 
       await this._processInit()
@@ -290,6 +292,9 @@ export class Client extends EventEmitter {
    */
   async login (opts = {}) {
     opts.prompt = opts.prompt || LOGIN
+    if (!this.isInitialized) {
+      await this.init()
+    }
     return this.adapter.login(opts)
   }
 
@@ -303,6 +308,9 @@ export class Client extends EventEmitter {
    */
   async silentLogin (opts = {}) {
     if (!this.options.silentLoginRedirectUri) {
+      if (!this.isInitialized) {
+        await this.init()
+      }
       if (opts.prompt) {
         return this.login(opts)
       }
@@ -328,6 +336,9 @@ export class Client extends EventEmitter {
    * @return {Promise}
    */
   async logout () {
+    if (!this.isInitialized) {
+      await this.init()
+    }
     const { idToken } = this.getTokens()
     this.statusIframe.clearSchedule()
     clearTimeout(this._expiryTimerId)
