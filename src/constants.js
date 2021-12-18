@@ -40,3 +40,9 @@ export const UNCHANGED = 'unchanged'
 
 // content-type
 export const TYPE_URLENCODED = 'application/x-www-form-urlencoded'
+
+// storage
+export const S_SESSION = 'session'
+export const S_LOCAL = 'local'
+export const S_COOKIE = 'cookie'
+export const S_MEMORY = 'memory'

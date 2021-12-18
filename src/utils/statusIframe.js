@@ -19,6 +19,7 @@ export class StatusIframe {
     this.enabled = useStatusIframe
     this.interval = statusIframeInterval * 1000
     this.log = log
+    this.mock = undefined
   }
 
   disable () {

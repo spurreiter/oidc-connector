@@ -38,12 +38,19 @@ import {
   TYPE_URLENCODED
 } from './constants.js'
 
+/** @typedef {import('./client').Options} Options */
+/** @typedef {import('./types').OidcError} OidcError */
+
 export class Client extends EventEmitter {
-  constructor (options = {}) {
+  /**
+   * @param {Options} [options]
+   */
+  constructor (options = { url: '', clientId: '' }) {
     super()
     this.options = initOptions(options)
     this.adapter = options.adapter || new Adapter()
     this.callback = new Callback(this.options)
+    // @ts-ignore
     this.tokens = new Tokens(this.options)
     this.debounce = debouncePromises()
     this.endpoints = null
@@ -79,7 +86,7 @@ export class Client extends EventEmitter {
   async _processInit () {
     const oauth = this.callback.parse(window.location.href)
     if (oauth) {
-      window.history.replaceState(window.history.state, null, oauth.newUrl)
+      window.history.replaceState(window.history.state, '', oauth.newUrl)
       if (oauth.valid) {
         return this._processCallback(oauth)
       }
@@ -110,11 +117,13 @@ export class Client extends EventEmitter {
     const { flow, clientId } = this.options
     const { code, error } = oauth
 
+    // see https://github.com/keycloak/keycloak-community/blob/main/design/application-initiated-actions.md
     if (oauth.kc_action_status) {
       this.emit('action', { status: oauth.kc_action_status })
     }
 
     if (error) {
+      /** @type {OidcError} */
       const err = new Error(error)
       err.description = oauth.error_description
       return Promise.reject(err)
@@ -136,6 +145,7 @@ export class Client extends EventEmitter {
       if (oauth.pkceCodeVerifier) {
         query.code_verifier = oauth.pkceCodeVerifier
       }
+      // @ts-ignore
       const url = this.endpoints.createTokenUrl()
       this.tokens.startTokenRequest()
       const res = await fetchToken(url, query, this.options)
@@ -144,9 +154,10 @@ export class Client extends EventEmitter {
         return this._authSuccess(tokenResponse, oauth)
       }
       const error = await res.json()
+      /** @type {OidcError} */
       const err = new Error(get(error, 'error', 'auth error'))
-      err.description = get(error, 'error_description')
       err.status = res.status
+      err.description = get(error, 'error_description')
       return Promise.reject(err)
     }
   }
@@ -194,6 +205,7 @@ export class Client extends EventEmitter {
         refresh_token: tokens.refreshToken,
         client_id: clientId
       }
+      // @ts-ignore
       const url = this.endpoints.createTokenUrl()
       this.tokens.startTokenRequest()
       const res = await fetchToken(url, query, this.options)
@@ -272,7 +284,7 @@ export class Client extends EventEmitter {
   /**
    * Starts login procedure
    * @param {Object} [opts={}]
-   * @param {string} [opts.prompt='login'] - 'login'|'none' if set to 'none'
+   * @param {'login'|'none'} [opts.prompt='login'] - 'login'|'none' if set to 'none'
    *                 then login will not prompt for credentials.
    * @return {Promise}
    */
@@ -324,6 +336,7 @@ export class Client extends EventEmitter {
   }
 
   async userinfo () {
+    // @ts-ignore
     const url = this.endpoints.userinfo()
     const token = await this.accessToken()
     const res = await fetch(url, {
@@ -336,7 +349,9 @@ export class Client extends EventEmitter {
       return res.json()
     }
     const err = new Error('userinfo failed')
+    // @ts-ignore
     err.status = res.status
+    // @ts-ignore
     err.response = res
     return Promise.reject(err)
   }
@@ -350,7 +365,7 @@ export class Client extends EventEmitter {
   }
 }
 
-async function fetchToken (url, query, { clientId, clientSecret, clientSecretPost } = {}) {
+async function fetchToken (url, query, { clientId = '', clientSecret = '', clientSecretPost = '' } = {}) {
   const headers = { 'Content-Type': TYPE_URLENCODED, Accept: 'application/json' }
   if (clientSecret) {
     if (clientSecretPost) {

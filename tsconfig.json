@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "checkJs": true,
+    "declaration": true,
+    "declarationDir": "types",
+    "moduleResolution": "node",
+    "noImplicitAny": false,
+    "strict": true,
+    "target": "ES2021"
+  },
+  "include": [
+    "src/*.js"
+  ],
+  "exclude": [
+    "node_modules",
+    "test",
+    "bin"
+  ]
+}

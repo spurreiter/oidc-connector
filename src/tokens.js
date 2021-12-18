@@ -1,7 +1,10 @@
 import { decodeToken, get, storage } from './utils/index.js'
 
 import {
-  SESSION_STATE
+  NONE,
+  SESSION_STATE,
+  S_MEMORY,
+  S_SESSION
 } from './constants.js'
 
 const now = () => Math.ceil(new Date().getTime() / 1000)
@@ -11,7 +14,7 @@ const toNumber = (num, def) => !isNaN(Number(num)) ? Number(num) : def
 const claim = (t, claim, def) => get(t, ['idTokenParsed', claim], get(t, ['tokenParsed', claim], def))
 
 export class Tokens {
-  constructor ({ log, useNonce, minValidity, storage = 'local' } = {}) {
+  constructor ({ log = undefined, useNonce = undefined, minValidity = undefined, storage = S_SESSION } = {}) {
     this.log = log
     this._useNonce = useNonce
     this._authenticated = false
@@ -34,16 +37,20 @@ export class Tokens {
     return this
   }
 
-  fromInitOptions ({ token, refreshToken, idToken } = {}) {
+  fromInitOptions ({ token = undefined, refreshToken = undefined, idToken = undefined } = {}) {
     const ls = this._store.get() || {}
+    // @ts-ignore
     token = token || ls.access_token
+    // @ts-ignore
     refreshToken = refreshToken || ls.refresh_token
 
     if (token) {
       const tokens = {
         access_token: token,
         refresh_token: refreshToken,
+        // @ts-ignore
         id_token: idToken || ls.id_token,
+        // @ts-ignore
         expiresAt: ls.expiresAt
       }
       this.setTokens(tokens)
@@ -186,8 +193,8 @@ const REFRESH_TOKEN = 'oidc-refresh-token'
 
 class Store {
   constructor (type) {
-    if (!type || type === 'none') return
-    this.store = storage(type, 'memory')
+    if (!type || type === NONE) return
+    this.store = storage(type, S_MEMORY)
   }
 
   _set (key, token) {
@@ -221,8 +228,9 @@ class Store {
   }
 }
 
-class TokenClaims {
+export class TokenClaims {
   constructor (tokens) {
+    this.token = this.idToken = this.refreshToken = undefined
     ;['token', 'idToken', 'refreshToken'].forEach((key) => {
       const parsed = key + 'Parsed'
       this[key] = tokens[key]

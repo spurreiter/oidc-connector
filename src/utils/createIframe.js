@@ -1,8 +1,12 @@
+import { NONE } from '../constants.js'
+
 const MESSAGE = 'message'
 
 class CreateIframe {
   constructor (opts) {
     this._opts = opts
+    this._iframe = null
+    this._handleMsg = undefined
   }
 
   async create (origin, onLoad, nextOrigin) {
@@ -17,14 +21,14 @@ class CreateIframe {
     }
     iframe.setAttribute('src', src)
     iframe.setAttribute('title', title)
-    iframe.style.display = 'none'
+    iframe.style.display = NONE
     document.body.appendChild(iframe)
   }
 
   addListener (handleMessage) {
     this._handleMsg = (ev) => {
-      if ((event.origin !== this.origin) ||
-          (this._iframe.contentWindow !== event.source)) {
+      if ((ev.origin !== this.origin) ||
+        (this._iframe && this._iframe.contentWindow !== ev.source)) {
         return
       }
       handleMessage(ev)
@@ -33,12 +37,13 @@ class CreateIframe {
   }
 
   postMessage (msg) {
+    if (!this._iframe || !this._iframe.contentWindow) return
     this._iframe.contentWindow.postMessage(msg, this.origin)
   }
 
   removeListener () {
-    window.removeEventListener(MESSAGE, this._handleMsg)
-    document.body.removeChild(this._iframe)
+    if (this._handleMsg) window.removeEventListener(MESSAGE, this._handleMsg)
+    if (this._iframe) document.body.removeChild(this._iframe)
   }
 }
 

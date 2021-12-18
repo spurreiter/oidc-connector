@@ -1,11 +1,21 @@
+/** @typedef {import('../types').Promised} Promised */
+
+/**
+ * creates a promise
+ * @returns {Promised}
+ */
 export function createPromise () {
   let _resolve
   let _reject
+  /** @type {Promised} */
+  // @ts-ignore
   const promise = new Promise((resolve, reject) => {
     _resolve = resolve
     _reject = reject
   })
+  // @ts-ignore
   promise.resolve = _resolve
+  // @ts-ignore
   promise.reject = _reject
   return promise
 }

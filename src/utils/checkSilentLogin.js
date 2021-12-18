@@ -11,6 +11,7 @@ export async function checkSilentLogin (client) {
     prompt: NONE,
     redirectUri: options.silentLoginRedirectUri
   })
+  // @ts-ignore
   const iframe = (checkSilentLogin.mock || createIframe)({ src, title: 'oidc-silent-check-sso' })
   await iframe.create(window.location.origin)
   const timerId = setTimeout(() => {

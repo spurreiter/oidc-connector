@@ -13,7 +13,11 @@ import {
   HYBRID,
   NONE,
   LOGIN,
-  OPENID
+  OPENID,
+  S_SESSION,
+  S_LOCAL,
+  S_COOKIE,
+  S_MEMORY
 } from '../constants.js'
 
 const set = (val, def) => Array.isArray(def)
@@ -30,7 +34,7 @@ const number = val => isNaN(val) ? undefined : val
 
 const func = val => typeof val === 'function' ? val : undefined
 
-const setResponseType = ({ responseType = '', flow }) => {
+const setResponseType = ({ flow = '', responseType = '' } = {}) => {
   const allowed = [NONE, CODE, TOKEN, ID_TOKEN]
   const types = responseType.split(' ').reduce((types, type) => {
     if (allowed.indexOf(type) !== -1) {
@@ -48,19 +52,40 @@ export function initOptions (options = {}) {
   }
 
   const opts = {
+    url: undefined,
+    realm: undefined,
+    clientId: undefined,
+    clientSecret: undefined,
+    clientSecretPost: undefined,
+    redirectUri: undefined,
+    postLogoutRedirectUri: undefined,
+    scope: undefined,
+    pkceMethod: undefined,
+    token: undefined,
+    refreshToken: undefined,
+    idToken: undefined,
+    silentLoginRedirectUri: undefined,
+    maxAge: undefined,
+    loginHint: undefined,
+    idpHint: undefined,
+    locale: undefined,
+    authorizationParams: undefined,
+    userRegistrationEndpoint: undefined,
+    userAccountEndpoint: undefined,
     ...options,
     forceLogin: set(options.forceLogin, false),
     forceLogout: set(options.forceLogout, true),
     useNonce: set(options.useNonce, true),
-    useStatusIframe: set(options.useStatusIframe, true),
-    statusIframeInterval: set(number(options.statusIframeInterval), 5),
+    storage: set(options.storage, [S_LOCAL, S_SESSION, S_COOKIE, S_MEMORY]),
+    minValidity: set(number(options.minValidity), 15),
+    expiryInterval: set(number(options.expiryInterval), 5),
     responseMode: set(options.responseMode, [FRAGMENT, QUERY]),
     responseType: setResponseType(options),
     flow: set(options.flow, [STANDARD, IMPLICIT, HYBRID]),
-    prompt: set(options.prompt, [NONE, LOGIN]),
-    minValidity: set(number(options.minValidity), 15),
-    expiryInterval: set(number(options.expiryInterval), 5),
     pkce: set(func(options.pkce), pkce),
+    useStatusIframe: set(options.useStatusIframe, true),
+    statusIframeInterval: set(number(options.statusIframeInterval), 5),
+    prompt: set(options.prompt, [NONE, LOGIN]),
     silentLoginWait: set(number(options.silentLoginWait), 5),
     log
   }

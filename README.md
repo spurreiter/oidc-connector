@@ -44,7 +44,7 @@ const client = new Client({
 
 // subscribe to events
 client.on('token', ({token, tokenParsed}) => {
-  if (!tokens.token) {
+  if (!token) {
     startSilentLogin()
     // alternatively you may use
     // startLogin()
@@ -60,6 +60,7 @@ client.on('error', (err) => {
 })
 client.on('action', ({status}) => {
   // subscribe to actions
+  // see https://github.com/keycloak/keycloak-community/blob/main/design/application-initiated-actions.md
 })
 
 // always initialize on page load!!!
@@ -121,7 +122,7 @@ _from [./src/client.d.ts](./src/client.d.ts)_
 
 <!-- include (./src/client.d.ts lang=ts) -->
 ```ts
-interface Options {
+export interface Options {
   /**
    * URL to the OIDC server.
    * This URL is used to locate the OIDC discovery document (typically found
@@ -328,7 +329,7 @@ interface Options {
  * non-standard settings can be named here.
  * @see https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata
  */
-interface OidcConfig {
+export interface OidcConfig {
   /** issuer url shall be the same as `url` */
   issuer?: Url;
   /** certificates endpoint */
@@ -349,14 +350,14 @@ interface OidcConfig {
  * logger with log levels. Uses '%s' microformat options
  * Either use with `console` or [debug](https://www.npmjs.com/package/debug)
  */
-interface Logger {
+export interface Logger {
   /** logs info messages */
   info?: (...args: any) => void;
   /** logs error messages */
   error?: (...args: any) => void;
 }
 
-interface Tokens {
+export interface Tokens {
   /**
    * raw access token
    */
@@ -389,9 +390,9 @@ interface Tokens {
   claim: (claimName: string) => string | number | undefined;
 }
 
-type eventName = 'token'|'error'|'logout'|'action'
+export type eventName = 'token'|'error'|'logout'|'action'
 
-export class Client {
+export class Client extends EventEmitter {
   constructor (options: Options);
   /**
    * initialize the client. Needs to be called on page load.
@@ -400,11 +401,11 @@ export class Client {
   /**
    * adds listener to eventName
    */
-  on (eventName: eventName, listener: Function) : void;
+  on (eventName: eventName, listener: Function) : this;
   /**
    * removes listener to eventName
    */
-  off (eventName: eventName, listener: Function) : void;
+  off (eventName: eventName, listener: Function) : this;
   /**
    * return all available tokens and its parsed payload
    */
@@ -412,7 +413,7 @@ export class Client {
   /**
    * asynchonously return access token
    */
-  accessToken(): Promise<Tokens.token>
+  accessToken(): Promise<Tokens["token"]>
   /**
    * Starts login procedure
    * User will always be prompted for credentials.

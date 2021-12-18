@@ -20,7 +20,9 @@ import {
   TOKEN_TYPE,
   ERROR,
   ERROR_DESCRIPTION,
-  ERROR_URI
+  ERROR_URI,
+  S_MEMORY,
+  S_COOKIE
 } from '../constants.js'
 
 const PARAMS = [
@@ -31,10 +33,11 @@ const PARAMS = [
 
 export class Callback {
   constructor (options) {
-    const { flow, responseMode, log } = options || {}
+    const { flow, responseMode, storage, log } = options || {}
+    const storageType = storage === S_MEMORY ? S_COOKIE : storage
     this._flow = flow || STANDARD
     this._responseMode = responseMode || FRAGMENT
-    this._store = new CallbackStorage()
+    this._store = new CallbackStorage(storageType)
     this.log = log
   }
 
@@ -69,14 +72,14 @@ export class Callback {
     let oauth = {}
     const uri = new URL(url)
 
-    const reduce = (search) => supportedParams.reduce((oauth, param) => {
+    const reduce = (search) => supportedParams.reduce((_oauth, param) => {
       const val = search.get(param)
       if (val) {
         search.delete(param)
-        oauth[param] = val
+        _oauth[param] = val
       }
-      return oauth
-    }, {})
+      return _oauth
+    }, { newUrl: '' })
 
     if (this._responseMode === QUERY) {
       oauth = reduce(uri.searchParams)

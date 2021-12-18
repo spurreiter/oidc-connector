@@ -19,8 +19,12 @@ export function getCookies () {
   const ca = document.cookie.split(';')
   for (let i = 0; i < ca.length; i++) {
     const c = ca[i].trimStart()
-    const [_, key, value] = /^([^=]+)=(.*)$/.exec(c) // eslint-disable-line no-unused-vars
-    obj[key] = decodeURIComponent(value)
+    const m = /^([^=]+)=(.*)$/.exec(c) // eslint-disable-line no-unused-vars
+    if (m) {
+      // eslint-disable-next-line no-unused-vars
+      const [_, key, value] = m
+      obj[key] = decodeURIComponent(value)
+    }
   }
   return obj
 }

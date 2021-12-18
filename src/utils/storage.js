@@ -1,5 +1,6 @@
 import { getCookie, getCookies, setCookie, min2ms } from './cookie.js'
 import { _globalThis } from './globalThis.js'
+import { S_SESSION, S_COOKIE, S_MEMORY } from '../constants.js'
 
 export class MemoryStorage {
   constructor () {
@@ -36,7 +37,7 @@ export class CookieStorage {
   }
 
   getItem (key) {
-    const value = getCookie(key)
+    const value = getCookie(key) || 'null'
     return JSON.parse(value)
   }
 
@@ -59,6 +60,7 @@ export class LocalStorage {
    */
   constructor (store) {
     const test = '##-test'
+    // @ts-ignore
     this._store = store || _globalThis.localStorage
     this._store.setItem(test, test)
     this._store.removeItem(test)
@@ -90,23 +92,25 @@ export class LocalStorage {
 
 /**
  * Obtain token storage. Fallback is type='cookie'
- * @param {string} [type='local'] - 'cookie|local|session|memory'
- * @returns {Storage}
+ * @param {string} [type='local'] 'cookie|local|session|memory'
+ * @param {string} [fallbackType] 'cookie|local|session|memory'
+ * @returns {Storage|MemoryStorage|CookieStorage}
  */
 export function storage (type, fallbackType) {
-  if (type === 'memory') {
+  if (type === S_MEMORY) {
     return new MemoryStorage()
   }
-  if (type === 'cookie') {
+  if (type === S_COOKIE) {
     return new CookieStorage()
   }
   try {
-    if (type === 'session') {
+    if (type === S_SESSION) {
+      // @ts-ignore
       return new LocalStorage(_globalThis.sessionStorage)
     }
     return new LocalStorage()
   } catch (e) {
-    if (fallbackType === 'memory') {
+    if (fallbackType === S_MEMORY) {
       return new MemoryStorage()
     }
     return new CookieStorage()
@@ -116,8 +120,7 @@ export function storage (type, fallbackType) {
 export class CallbackStorage {
   /**
    * Obtain token storage. Fallback is type='cookie'
-   * @param {string} [type='local'] - 'cookie|local|session|memory'
-   * @returns {Storage}
+   * @param {string} [type='local'] - 'local|session|cookie|memory'
    */
   constructor (type) {
     this._callback = 'oidc-callback-'

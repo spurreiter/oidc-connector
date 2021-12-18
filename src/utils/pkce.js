@@ -18,19 +18,23 @@ function uint8ArrayToString (arrUint8) {
 
 function genCodeVerifier (len) {
   const binary = uint8ArrayToString(genRandomData(len))
+  // @ts-ignore
   return _globalThis.btoa(binary).replace(RE_MAP, '').substring(0, len)
 }
 
 function base64Encode (hash) {
   const binary = uint8ArrayToString(new Uint8Array(hash))
+  // @ts-ignore
   const encoded = _globalThis.btoa(binary).replace(RE_MAP, m => map[m])
   return encoded
 }
 
 function createHash (buffer, algorithm) {
   if (typeof buffer === 'string') {
+    // @ts-ignore
     buffer = new _globalThis.TextEncoder().encode(buffer)
   }
+  // @ts-ignore
   return _globalThis.crypto.subtle.digest(algorithm, buffer)
 }
 
