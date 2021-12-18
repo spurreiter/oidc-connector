@@ -1,8 +1,9 @@
 export class Tokens {
-    constructor({ log, useNonce, minValidity, storage }?: {
+    constructor({ log, useNonce, minValidity, clientId, storage }?: {
         log?: undefined;
         useNonce?: undefined;
         minValidity?: undefined;
+        clientId?: undefined;
         storage?: string | undefined;
     });
     log: any;
@@ -57,7 +58,8 @@ export class TokenClaims {
     claim(claimName: any): any;
 }
 declare class Store {
-    constructor(type: any);
+    constructor(type: any, clientId: any);
+    clientId: any;
     store: Storage | import("./utils/storage.js").MemoryStorage | import("./utils/storage.js").CookieStorage | undefined;
     _set(key: any, token: any): void;
     token(token: any, expiresAt: any): void;

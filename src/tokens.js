@@ -14,13 +14,13 @@ const toNumber = (num, def) => !isNaN(Number(num)) ? Number(num) : def
 const claim = (t, claim, def) => get(t, ['idTokenParsed', claim], get(t, ['tokenParsed', claim], def))
 
 export class Tokens {
-  constructor ({ log = undefined, useNonce = undefined, minValidity = undefined, storage = S_SESSION } = {}) {
+  constructor ({ log = undefined, useNonce = undefined, minValidity = undefined, clientId = undefined, storage = S_SESSION } = {}) {
     this.log = log
     this._useNonce = useNonce
     this._authenticated = false
     this._timeSkew = 0
     this._expiresAt = 0
-    this._store = new Store(storage)
+    this._store = new Store(storage, clientId)
     this._minValidity = minValidity
   }
 
@@ -186,14 +186,16 @@ export class Tokens {
   }
 }
 
-const TOKEN = 'oidc-token'
-const TOKEN_EXPIRES_AT = 'oidc-token-exp'
-const ID_TOKEN = 'oidc-id-token'
-const REFRESH_TOKEN = 'oidc-refresh-token'
+const _getName = (type) => (clientId) => `oidc-${clientId || ''}-${type}`
+const tokenName = _getName('token')
+const tokenExpiresAtName = _getName('token-exp')
+const idTokenName = _getName('id-token')
+const refreshTokenName = _getName('refresh-token')
 
 class Store {
-  constructor (type) {
+  constructor (type, clientId) {
     if (!type || type === NONE) return
+    this.clientId = clientId
     this.store = storage(type, S_MEMORY)
   }
 
@@ -205,25 +207,25 @@ class Store {
   }
 
   token (token, expiresAt) {
-    this._set(TOKEN, token)
-    this._set(TOKEN_EXPIRES_AT, expiresAt)
+    this._set(tokenName(this.clientId), token)
+    this._set(tokenExpiresAtName(this.clientId), expiresAt)
   }
 
   refreshToken (token) {
-    this._set(REFRESH_TOKEN, token)
+    this._set(refreshTokenName(this.clientId), token)
   }
 
   idToken (token) {
-    this._set(ID_TOKEN, token)
+    this._set(idTokenName(this.clientId), token)
   }
 
   get () {
     if (!this.store) return
     return {
-      access_token: this.store.getItem(TOKEN),
-      refresh_token: this.store.getItem(REFRESH_TOKEN),
-      id_token: this.store.getItem(ID_TOKEN),
-      expiresAt: this.store.getItem(TOKEN_EXPIRES_AT)
+      access_token: this.store.getItem(tokenName(this.clientId)),
+      refresh_token: this.store.getItem(refreshTokenName(this.clientId)),
+      id_token: this.store.getItem(idTokenName(this.clientId)),
+      expiresAt: this.store.getItem(tokenExpiresAtName(this.clientId))
     }
   }
 }

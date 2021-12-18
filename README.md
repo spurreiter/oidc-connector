@@ -18,6 +18,7 @@ Features
 - Tokens are refreshed automatically; No need to take care on expiry timestamps.
 - Support for custom adapters (default is browser, package comes bundled with
   cordova and cordova-native adapter)
+- Supports multiple tokens from different client-ids in the frontend
 
 Verified to work with following OIDC servers
 
