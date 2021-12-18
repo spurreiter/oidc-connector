@@ -19,7 +19,7 @@ export function clearUrl (url) {
 }
 
 export function createUrl (url, query) {
-  const u = new URL(clearUrl(url))
+  const u = new URL(url)
   if (query) {
     u.search = urlEncoded(query)
   }
