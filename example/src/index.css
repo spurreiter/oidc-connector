@@ -1,0 +1,12 @@
+body { font-family: sans-serif; }
+
+pre {
+  padding: 0.5em;
+  white-space: pre-wrap;
+}
+
+.error {
+  border: 1px solid red;
+  background-color: pink;
+}
+

@@ -33,6 +33,9 @@ Verified to work with following OIDC servers
 <small>*) If you have successfully used this client with other OIDC Servers
 please let us know through a PR or Issue.</small>
 
+See example application for testing at `./example`. Start with `npm run example`.
+
+
 ## Usage
 
 ```js
@@ -113,6 +116,9 @@ if (res.status === 200) {
   // handle error response
 }
 ```
+
+For an example using a React/ Preact Application see `./example/src/OidcConnector.jsx`
+
 
 ## Configuration
 

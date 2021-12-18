@@ -1,0 +1,35 @@
+.settings {
+  padding: 1em;
+}
+.settings form { 
+  display: flex; 
+  flex-flow: column;
+}
+.settings form > div { 
+  display: flex;
+  margin-bottom: 0.5em;
+}
+.settings input,
+.settings label, 
+.settings select {
+  padding: 0.2em;
+}
+.settings select {
+  font-size: 0.9em;
+}
+.settings input[type=text] {
+  min-width: 17em;
+  font-size: 1em;
+}
+.settings label { 
+  min-width: 11em;
+  padding-right: 1em; 
+}
+.settings button {
+  padding: 0.5em 1em;
+  min-width: 8em;
+  font-size: 1em;
+}
+.settings button ~ button {
+  margin-left: 1em;
+}

@@ -1,0 +1,7 @@
+.navigation {
+  margin-bottom: 1em;
+}
+
+.navigation a ~ a {
+  margin-left: 0.5em;
+}

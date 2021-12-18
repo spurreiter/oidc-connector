@@ -23,7 +23,7 @@ function setup () {
     res.end(viewSilentLoginCheck)
   })
 
-  app.use(express.static(__dirname))
+  app.use(express.static(path.resolve(__dirname, 'dist')))
 
   return app
 }
