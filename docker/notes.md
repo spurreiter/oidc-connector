@@ -55,7 +55,7 @@ For some quick testing on some servers disable CORS in chrome
 
 ```bash
 #linux
-chromium-browser --disable-web-security
+chromium-browser --disable-web-security --user-data-dir=/tmp/chrome
 #macos
 open -n -a /Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --args --user-data-dir="/tmp/chrome_dev_sess_1" --disable-web-security
 ```
