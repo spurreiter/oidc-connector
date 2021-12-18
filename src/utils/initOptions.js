@@ -76,7 +76,7 @@ export function initOptions (options = {}) {
     forceLogin: set(options.forceLogin, false),
     forceLogout: set(options.forceLogout, true),
     useNonce: set(options.useNonce, true),
-    storage: set(options.storage, [S_LOCAL, S_SESSION, S_COOKIE, S_MEMORY]),
+    storage: set(options.storage, [S_SESSION, S_LOCAL, S_COOKIE, S_MEMORY]),
     minValidity: set(number(options.minValidity), 15),
     expiryInterval: set(number(options.expiryInterval), 5),
     responseMode: set(options.responseMode, [FRAGMENT, QUERY]),

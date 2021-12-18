@@ -72,9 +72,9 @@ export interface Options {
   useNonce?: boolean;
   /**
    * storage used to store received tokens.
-   * @default 'local'
+   * @default 'session'
    */
-  storage?: 'local'|'session'|'memory'|'none';
+  storage?: 'session'|'local'|'cookie'|'memory'|'none';
   /**
    * minimum validity of an access_token before expiry.
    * If expiry is less than minValidity new access_token is requested using a
