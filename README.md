@@ -20,15 +20,16 @@ Features
   cordova and cordova-native adapter)
 - Supports multiple tokens from different client-ids in the frontend
 
-Verified to work with following OIDC servers
+Verified to work with following OIDC servers/ services
 
-- [keycloak][]
 - [Auth0](https://auth0.com)
-- [okta](https://okta.com)
+- [authentik](https://goauthentik.io/)
 - [fusionauth](https://fusionauth.io)
-- [ory/hydra](https://www.ory.sh/hydra/)
+- [keycloak][]
 - [oidc-provider](https://github.com/panva/node-oidc-provider)
+- [okta](https://okta.com)
 - [OpenAM](https://www.openidentityplatform.org/openam)
+- [ory/hydra](https://www.ory.sh/hydra/)
 
 <small>*) If you have successfully used this client with other OIDC Servers
 please let us know through a PR or Issue.</small>

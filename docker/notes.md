@@ -21,17 +21,18 @@
 
 - no .well-known/openid-configuration
 - CORS needs configuration via web.xml https://docs.wso2.com/display/IS570/Invoking+an+Endpoint+from+a+Different+Domain
-- ```js
-  oidcConfig: {
-    authorization_endpoint: 'https://localhost:9443/oauth2/authorize',
-    token_endpoint: 'https://localhost:9443/oauth2/token'
+- set `oidcConfig`: 
+  ```json
+  {
+    "authorization_endpoint": "https://localhost:9443/oauth2/authorize",
+    "token_endpoint": "https://localhost:9443/oauth2/token"
   }
   ```
 - Endpoint returns 404, maybe problem is web.xml
 
 ## openam
 
-CORS needs to be configured via /usr/local/tomcat/webapps/openam/WEB-INF/web.xml
+- CORS needs to be configured via /usr/local/tomcat/webapps/openam/WEB-INF/web.xml
 
 **Quick Setup**
 
@@ -48,6 +49,33 @@ CORS needs to be configured via /usr/local/tomcat/webapps/openam/WEB-INF/web.xml
     - Post Logout Redirect Urls: http://localhost:8000/
 1. http://localhost:8080/openam/oauth2/.well-known/openid-configuration
 
+## authentik 
+
+**Quick Setup**
+
+1. navigate to http://localhost:9000/if/flow/initial-setup/
+   set admin account and password
+1. Button(Admin Interface)
+1. create user   
+    - Directory > Users > Button(Create)
+    - Button(Impersonate)
+    - Icon(Gear) > Change Password
+    - Button(Stop impersonation)
+1. create provider
+    - Applications > Providers > Button(Create)
+    - Name: my-app
+    - Auth-Flow: implicit consent
+    - Client Type: Public
+    - Client Id: my-app
+    - Redirect URIs: http://localhost:8000/
+1. create Application
+    - Applications > Applications > Button(Create)
+    - Name: my, Slug: my, Provider: my-app, Policy engine mode: ANY, 
+    - Launch Url: http://localhost:8000
+
+1. configure oidc-connector: 
+    - url: http://localhost:9000/application/o/my/
+    - pkceMethod: S256 is supported
 
 # appendix
 
