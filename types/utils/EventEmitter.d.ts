@@ -4,7 +4,7 @@ export class EventEmitter {
     /**
      * @private
      * @param {eventName} eventName
-     * @returns {Map} map of listeners
+     * @returns {Set} Set of listeners
      */
     private _getMap;
     /**

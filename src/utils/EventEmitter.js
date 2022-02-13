@@ -8,10 +8,10 @@ export class EventEmitter {
   /**
    * @private
    * @param {eventName} eventName
-   * @returns {Map} map of listeners
+   * @returns {Set} Set of listeners
    */
   _getMap (eventName) {
-    if (!this._events[eventName]) this._events[eventName] = new Map()
+    if (!this._events[eventName]) this._events[eventName] = new Set()
     return this._events[eventName]
   }
 
@@ -22,7 +22,7 @@ export class EventEmitter {
    * @returns {this}
    */
   on (eventName, listener) {
-    this._getMap(eventName).set(listener, listener)
+    this._getMap(eventName).add(listener)
     return this
   }
 
@@ -43,7 +43,7 @@ export class EventEmitter {
    * @param  {...any} args
    */
   emit (eventName, ...args) {
-    for (const [_, listener] of this._getMap(eventName)) { // eslint-disable-line no-unused-vars
+    for (const listener of this._getMap(eventName)) {
       listener(...args)
     }
   }
