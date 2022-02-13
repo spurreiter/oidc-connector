@@ -1,3 +1,8 @@
+[![Build Status](https://github.com/spurreiter/oidc-connector/workflows/CI/badge.svg?branch=main&event=push)](https://github.com/spurreiter/oidc-connector/actions/workflows/ci.yml?query=branch%3Amain)
+[![npm version](https://badge.fury.io/js/oidc-connector.svg)](https://www.npmjs.com/package/oidc-connector)
+[![Downloads per month](https://img.shields.io/npm/dm/oidc-connector)](https://www.npmjs.com/package/oidc-connector)
+
+
 # oidc-connector
 
 - [OpenID Connect][] connector/ client for modern browsers.
