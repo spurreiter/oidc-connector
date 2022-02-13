@@ -38,28 +38,20 @@ export const OidcConnector = ({ options, children }) => {
   /**
    * initialize login
    */
-  const handleLogin = () => {
+  const handleLogin = useMemo(() => () => {
     setLoading(true)
     return client.login()
-  }
+  })
+
   /**
    * initialize logout
    */
-  const handleLogout = () => {
+  const handleLogout = useMemo(() => ()=> {
     setLoading(true)
     return client.logout()
-  }
-  /**
-   * get access token
-   * @returns {string} access-token for REST based authorization
-   */
-  const getAccessToken = () => {
-    const isExpired = client.tokens.isTokenExpired()
-    return !isExpired ? client.tokens.token : null
-  }
-  const getClient = () => client
+  })
 
-  const value = { isLoading, isAuthenticated, error, handleLogin, handleLogout, getAccessToken, getClient }
+  const value = { isLoading, isAuthenticated, error, handleLogin, handleLogout, client }
 
   return h(OidcContext.Provider, { value }, children)
 }
