@@ -1,1 +1,1 @@
-export const _globalThis: typeof globalThis | undefined;
+export const _globalThis: any;

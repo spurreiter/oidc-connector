@@ -78,7 +78,7 @@ const formMeta = {
   oidcConfig: { type: 'text' }
 }
 
-export const getInitialSettings = () => Object.assign({}, 
+export const getInitialSettings = () => Object.assign({},
   DEFAULT_OPTIONS, loadSettings())
 
 const loadSettings = () =>
@@ -116,7 +116,7 @@ const Select = ({ name, value, options }) => (
 
 export const Settings = ({ handleSave }) => {
   let formId
-  const [options, setOptions] = useState({ 
+  const [options, setOptions] = useState({
     ...DEFAULT_OPTIONS,
     ...loadSettings()
   })
@@ -138,7 +138,7 @@ export const Settings = ({ handleSave }) => {
       if (type === 'checkbox') {
         o[key] = (value === 'on' || value === true)
       } else if (stringifyProps.includes(key)) {
-        try { 
+        try {
           o[key] = JSON.parse(value)
         } catch (e) {
           console.error(value)
@@ -149,7 +149,7 @@ export const Settings = ({ handleSave }) => {
       }
       return o
     }, { ...DEFAULT_OPTIONS })
-    
+
     storeSettings(opts)
     setOptions(opts)
     handleSave && handleSave(opts)

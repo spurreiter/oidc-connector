@@ -313,7 +313,7 @@ export function setup ({
     let isValidResponseType = false
     let url
     const responseType = response_type.split(' ')
-    const params = { state, session_state: session_state } // we simplify session_state here
+    const params = { state, session_state } // we simplify session_state here
     const issuer = `${getOrigin(req.headers)}${baseUrl}`
 
     const { access_token, id_token } = getTokens(jwks, { ...conf, issuer, aud, session_state, nonce })

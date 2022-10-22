@@ -16,6 +16,10 @@ function uint8ArrayToString (arrUint8) {
   return sUtf8
 }
 
+/**
+ * @param {number} len
+ * @returns {string}
+ */
 function genCodeVerifier (len) {
   const binary = uint8ArrayToString(genRandomData(len))
   // @ts-ignore
@@ -49,6 +53,12 @@ async function genPkceChallenge (pkceMethod, codeVerifier) {
   }
 }
 
+/**
+ *
+ * @param {'S256'|string} pkceMethod
+ * @param {string} [test]
+ * @returns {Promise<{codeVerifier: string, challenge: string }>}
+ */
 export async function pkce (pkceMethod, test) {
   const codeVerifier = test || genCodeVerifier(96)
   const challenge = await genPkceChallenge(pkceMethod, codeVerifier)

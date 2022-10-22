@@ -41,6 +41,10 @@ export const Navigation = ({ home = '/', dispatch }) => {
         client.tokens._store.store.clear()
         break
       }
+      case 'refresh': {
+        client.tokens._expiresAt = 0
+        break
+      }
       default: {
         client[action]()
           .catch(err => dispatch(err))

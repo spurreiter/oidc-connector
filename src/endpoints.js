@@ -58,7 +58,7 @@ export class Endpoints {
       ...authorizationParams,
       client_id: clientId,
       redirect_uri: redirectUri,
-      state: state,
+      state,
       response_mode: responseMode,
       response_type: responseType,
       scope,

@@ -10,8 +10,10 @@ export const _globalThis = (() => {
     return window
   }
 
-  /* c8 ignore next 3 */
+  /* c8 ignore next 5 */
+  // @ts-ignore
   if (typeof global !== 'undefined') {
+    // @ts-ignore
     return global
   }
 })()
