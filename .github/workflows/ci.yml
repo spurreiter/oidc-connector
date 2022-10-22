@@ -5,7 +5,7 @@ name: CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, actions ]
   pull_request: {}
   #  branches: [ main ]
 
@@ -16,7 +16,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [16.x]
+        node-version: [18.x]
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
     steps:
@@ -26,5 +26,5 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
         # cache: 'npm'
-    - run: npm install --ignore-scripts
+    - run: npm install --ignore-scripts --legacy-peer-deps
     - run: npm run all
