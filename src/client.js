@@ -273,6 +273,12 @@ export class Client extends EventEmitter {
     return this.tokens.getTokens()
   }
 
+  getParsedToken () {
+    const tokens = this.getTokens() || {}
+    // @ts-expect-error
+    return tokens.tokenParsed || tokens.idTokenParsed
+  }
+
   async accessToken () {
     const { token, refreshToken } = this.tokens
     const isExpired = this.tokens.isTokenExpired()

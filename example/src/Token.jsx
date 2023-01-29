@@ -12,10 +12,7 @@ export const Token = () => {
     setRerender(!rerender)
   })
 
-  const tokenParsed = isAuthenticated
-    ? client?.tokens?.tokenParsed || client()?.tokens?.idTokenParsed
-    : undefined
-
+  const tokenParsed = client.getParsedToken()
   return tokenParsed
     ? <pre>{JSON.stringify(tokenParsed, null, 2)}</pre>
     : null

@@ -163,7 +163,7 @@ export class Tokens {
   }
 
   /**
-   * checkes if storedNonce is different than nonce in tokens
+   * checks if storedNonce is different than nonce in tokens
    * requires `useNonce` in options.
    * if invalid tokens are cleared
    * @param {string} storedNonce

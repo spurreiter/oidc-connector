@@ -13,7 +13,7 @@
 
 Features
 
-- Minified ~22kB in size
+- Minified ~23kB in size
 - No external dependencies
 - Supports standard, hybrid and implicit authentication flow.
 - Native Promise based

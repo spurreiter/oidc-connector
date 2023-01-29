@@ -28,7 +28,7 @@ export interface Options {
    */
   clientSecret?: string;
   /**
-   * Send Client Secret in POST body. 
+   * Send Client Secret in POST body.
    * token_endpoint_auth_methods_supported: ['client_secret_post']
    */
   clientSecretPost?: boolean;
@@ -331,6 +331,10 @@ export class Client extends EventEmitter {
    * return all available tokens and its parsed payload
    */
   getTokens(): Tokens;
+  /**
+   * get parsed token (either access or id token)
+   */
+  getParsedToken(): object;
   /**
    * asynchonously return access token
    */
