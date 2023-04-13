@@ -28,7 +28,7 @@ async function setup () {
 
   if (isDevMode) {
     const vite = await createViteServer({
-      server: { middlewareMode: 'html' }
+      server: { middlewareMode: true }
     })
     // use vite's connect instance as middleware
     app.use(vite.middlewares)
