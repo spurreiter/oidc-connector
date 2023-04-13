@@ -4,6 +4,19 @@
 
 - no token revocation
 
+## [Azure AD](https://portal.azure.com)
+
+With MS Graph API
+
+settings for platform SPA:
+
+- url: https://login.microsoftonline.com/{tenant-id}/v2.0
+- scope: `openid https://graph.microsoft.com/.default `
+- responseMode: fragment
+- responseType: code
+- flow: standard
+- pkceMethod: S256
+
 ## [Auth0](https://auth0.com)
 
 - no logout but token revocation

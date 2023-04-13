@@ -13,7 +13,7 @@
 
 Features
 
-- Minified ~23kB in size
+- Minified ~22kB in size
 - No external dependencies
 - Supports standard, hybrid and implicit authentication flow.
 - Native Promise based
@@ -35,6 +35,7 @@ Verified to work with following OIDC servers/ services
 - [okta](https://okta.com)
 - [OpenAM](https://www.openidentityplatform.org/openam)
 - [ory/hydra](https://www.ory.sh/hydra/)
+- [Azure AD](https://login.microsoftonline.com/common/.well-known/openid-configuration)
 
 <small>*) If you have successfully used this client with other OIDC Servers
 please let us know through a PR or Issue.</small>

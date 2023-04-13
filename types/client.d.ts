@@ -1,10 +1,18 @@
 import { EventEmitter } from "./utils";
 
-type ResponseMode = 'query'|'fragment';
-type ResponseType = 'code'|'id_token token'|'code id_token token';
-type PkceMethod = 'S256';
+export type ResponseMode = 'query'|'fragment';
+export type ResponseType = 'code'|
+                            'id_token token'|
+                            'code id_token token'|
+                            'code id_token'|
+                            'code token'|
+                            'none'|
+                            'id_token'|
+                            'token';
+export type PkceMethod = 'S256';
 
-type Url = string;
+
+export type Url = string;
 
 export interface Options {
   /**
@@ -64,6 +72,16 @@ export interface Options {
    * Scope `openid` is always added per default.
    */
   scope?: string|string[];
+  /**
+   * If `true` do not add openid in scope
+   * @default false
+   */
+  noOpenidInScope?: boolean;
+  /**
+   * If `true` passes scope in token request; May be required for accessing MS Graph API.
+   * @default false
+   */
+  scopeInTokenRequest?: boolean
   /**
    * Adds a [cryptographic nonce](https://en.wikipedia.org/wiki/Cryptographic_nonce)
    * to verify that the authentication response matches the request.
@@ -236,9 +254,9 @@ export interface OidcConfig {
  */
 export interface Logger {
   /** logs info messages */
-  info?: (...args: any) => void;
+  info: (...args: any) => void;
   /** logs error messages */
-  error?: (...args: any) => void;
+  error: (...args: any) => void;
 }
 
 export interface Tokens {

@@ -14,6 +14,8 @@ const DEFAULT_OPTIONS = {
   forceLogin: false,
   forceLogout: true,
   scope: 'openid',
+  noOpenidInScope: false,
+  scopeInTokenRequest: false,
   useNonce: true,
   storage: 'session',
   minValidity: 15,
@@ -41,6 +43,8 @@ const formMeta = {
   forceLogin: { type: 'checkbox' },
   forceLogout: { type: 'checkbox' },
   scope: { type: 'text' },
+  noOpenidInScope: { type: 'checkbox' },
+  scopeInTokenRequest: { type: 'checkbox' },
   useNonce: { type: 'checkbox' },
   storage: {
     options: [

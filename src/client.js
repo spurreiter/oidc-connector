@@ -57,6 +57,7 @@ export class Client extends EventEmitter {
     this.statusIframe = new StatusIframe(this)
     this.checkSilentLogin = checkSilentLogin
     // try to load tokens
+    // @ts-expect-error
     this.tokens.fromInitOptions(this.options)
     this.isInitialized = false
   }
@@ -109,14 +110,14 @@ export class Client extends EventEmitter {
     await this.statusIframe.schedule()
 
     // force refresh if status iframe is disabled
-    const minValidity = !this.statusIframe.enabled && -1
+    const _minValidity = !this.statusIframe.enabled ? -1 : this.options.minValidity
 
-    return this._refresh(minValidity)
+    return this._refresh(_minValidity)
       .then(tokens => tokens || this.tokens.getTokens()) // tokens may not be present if not yet expired
   }
 
   async _processCallback (oauth) {
-    const { flow, clientId } = this.options
+    const { flow, clientId, scope, scopeInTokenRequest } = this.options
     const { code, error } = oauth
 
     // see https://github.com/keycloak/keycloak-community/blob/main/design/application-initiated-actions.md
@@ -144,12 +145,17 @@ export class Client extends EventEmitter {
         client_id: clientId,
         redirect_uri: oauth.redirectUri
       }
+      if (scopeInTokenRequest) {
+        query.scope = scope
+      }
+
       if (oauth.pkceCodeVerifier) {
         query.code_verifier = oauth.pkceCodeVerifier
       }
       // @ts-ignore
       const url = this.endpoints.createTokenUrl()
       this.tokens.startTokenRequest()
+      // @ts-expect-error
       const res = await fetchToken(url, query, this.options)
       if (res.status === 200) {
         const tokenResponse = await res.json()
@@ -210,6 +216,7 @@ export class Client extends EventEmitter {
       // @ts-ignore
       const url = this.endpoints.createTokenUrl()
       this.tokens.startTokenRequest()
+      // @ts-expect-error
       const res = await fetchToken(url, query, this.options)
       if (res.status === 200) {
         log.info('token refreshed')
@@ -230,7 +237,7 @@ export class Client extends EventEmitter {
   }
 
   _schedule () {
-    const { expiryInterval } = this.options
+    const { expiryInterval = 0 } = this.options
     if (expiryInterval > 0 && !this._expiryTimerId && this.tokens.refreshToken) {
       this._expiryTimerId = setTimeout(async () => {
         this._refresh()

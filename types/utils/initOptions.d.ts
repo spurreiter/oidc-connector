@@ -1,40 +1,17 @@
-export function initOptions(options?: {}): {
-    forceLogin: any;
-    forceLogout: any;
-    useNonce: any;
-    storage: any;
-    minValidity: any;
-    expiryInterval: any;
-    responseMode: any;
-    responseType: string;
-    flow: any;
-    pkce: any;
-    useStatusIframe: any;
-    statusIframeInterval: any;
-    prompt: any;
-    silentLoginWait: any;
-    log: {
-        info: any;
-        error: any;
-    };
-    url: undefined;
-    realm: undefined;
-    clientId: undefined;
-    clientSecret: undefined;
-    clientSecretPost: undefined;
-    redirectUri: undefined;
-    postLogoutRedirectUri: undefined;
-    scope: undefined;
-    pkceMethod: undefined;
-    token: undefined;
-    refreshToken: undefined;
-    idToken: undefined;
-    silentLoginRedirectUri: undefined;
-    maxAge: undefined;
-    loginHint: undefined;
-    idpHint: undefined;
-    locale: undefined;
-    authorizationParams: undefined;
-    userRegistrationEndpoint: undefined;
-    userAccountEndpoint: undefined;
+/**
+ * @typedef {import('../client').Options} Options
+ * @typedef {import('../client').Logger} Logger
+ *
+ * @typedef {object} OptionsExt
+ * @property {Logger} log
+ */
+/**
+ * @param {Options} options
+ * @returns {Options & OptionsExt}
+ */
+export function initOptions(options: Options): Options & OptionsExt;
+export type Options = import('../client').Options;
+export type Logger = import('../client').Logger;
+export type OptionsExt = {
+    log: Logger;
 };
