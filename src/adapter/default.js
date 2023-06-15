@@ -1,4 +1,3 @@
-
 export class Adapter {
   initialize (client) {
     this.client = client

@@ -1,4 +1,3 @@
-
 // default scope
 export const OPENID = 'openid'
 

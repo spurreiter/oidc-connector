@@ -22,6 +22,7 @@ export class Tokens {
     this._expiresAt = 0
     this._store = new Store(storage, clientId)
     this._minValidity = minValidity
+    this._timeLocal = new Date().getTime()
   }
 
   get authenticated () {

@@ -13,6 +13,7 @@ export class Tokens {
     _expiresAt: number;
     _store: Store;
     _minValidity: any;
+    _timeLocal: number;
     get authenticated(): boolean;
     /**
      * load tokens from localStorage
@@ -24,7 +25,6 @@ export class Tokens {
         idToken?: undefined;
     }): Tokens;
     startTokenRequest(): void;
-    _timeLocal: any;
     setTokens(tokenResponse?: {}): void;
     refreshToken: any;
     refreshTokenParsed: any;

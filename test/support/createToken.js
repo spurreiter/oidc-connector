@@ -1,4 +1,3 @@
-
 export const createToken = ({
   skew = 2, // server is 2 seconds ahead in time
   sessionState = 'mystate',

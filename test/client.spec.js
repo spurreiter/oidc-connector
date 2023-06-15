@@ -90,13 +90,14 @@ describe('Client', function () {
 
       const token = await client.accessToken()
       assert.strictEqual(token, tokens.token, 'shall get access token')
+
+      assert.strictEqual(client.getParsedToken().aud, 'test')
     })
 
     it('shall obtain tokens in standard flow with pkce', async function () {
       const opts = { ...clientOpts, pkceMethod: 'S256' }
       const client0 = new Client(opts)
-      await client0.init()
-      const newUrl = await client0.login()
+      const newUrl = await client0.login() // shall auto initialize
       // console.log(params(newUrl))
       assert.deepStrictEqual(
         Object.keys(params(newUrl).hash).sort(),
@@ -140,6 +141,34 @@ describe('Client', function () {
       assert.strictEqual(typeof tokens.refreshToken, 'string', 'shall return refresh token')
       assert.ok(tokens.token !== tokens1.token, 'obtained token shall differ')
       assert.ok(tokens.refreshToken !== tokens1.refreshToken, 'obtained refresh token shall differ')
+    })
+
+    it('shall reinitialize with access token only', async function () {
+      const opts = { ...clientOpts }
+      const client0 = new Client(opts)
+      await client0.init()
+      const newUrl = await client0.login()
+
+      // return from authentication with the code
+      window.location.href = newUrl
+      const client1 = new Client(opts)
+      const tokens1 = await client1.init()
+      // console.log(tokens1)
+      assert.strictEqual(typeof tokens1.token, 'string', 'shall return token')
+      delete tokens1.refreshToken
+
+      // refresh page
+      window.location.href = origin
+      const client = new Client({ ...opts, ...tokens1 })
+      const tokens = await client.init()
+      // console.log(tokens)
+      assert.strictEqual(typeof tokens.token, 'string', 'shall return token')
+      assert.strictEqual(
+        typeof tokens.refreshToken,
+        'undefined',
+        'shall not have a refresh token'
+      )
+      assert.ok(tokens.token === tokens1.token, 'obtained token shall be the same')
     })
 
     it('shall obtain tokens in implicit flow', async function () {
@@ -217,6 +246,27 @@ describe('Client', function () {
       assert.strictEqual(typeof tokens.token, 'string', 'shall return token')
       assert.strictEqual(typeof tokens.idToken, 'string', 'shall return id token')
       assert.strictEqual(typeof tokens.refreshToken, 'string', 'shall return refresh token')
+    })
+
+    it('shall fail if silent login redirect url is missing', async function () {
+      const opts = { ...clientOpts }
+      const client = new Client(opts)
+      injectMocks(client)
+      try {
+        await client.silentLogin()
+        throw new Error('failed')
+      } catch (err) {
+        assert.equal(err.message, 'no silentLoginRedirectUri')
+      }
+    })
+
+    it('shall login if silent login redirect url is missing but prompt is set', async function () {
+      const opts = { ...clientOpts }
+      const client = new Client(opts)
+      injectMocks(client)
+      await client.init()
+      const tokens = await client.silentLogin({ prompt: 'login' })
+      assert.strictEqual(typeof tokens.token, 'undefined')
     })
 
     it('shall fail if login is required', async function () {

@@ -99,6 +99,10 @@ export class Client extends EventEmitter {
     if (token && refreshToken) {
       return this._processWithTokens()
     }
+    const isExpired = this.tokens.isTokenExpired(this.options.minValidity)
+    if (token && isExpired) {
+      return this._handleLogout()
+    }
     if (this.options.forceLogin) {
       return this.login()
     }
