@@ -1,6 +1,6 @@
 {
   "name": "oidc-connector",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "description": "oidc client connector",
   "keywords": [
     "keycloak",
