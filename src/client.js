@@ -33,7 +33,6 @@ import {
 
 import {
   IMPLICIT,
-  LOGIN,
   STANDARD,
   TYPE_URLENCODED
 } from './constants.js'
@@ -303,12 +302,11 @@ export class Client extends EventEmitter {
   /**
    * Starts login procedure
    * @param {Object} [opts={}]
-   * @param {'login'|'none'} [opts.prompt='login'] - 'login'|'none' if set to 'none'
-   *                 then login will not prompt for credentials.
+   * @param {'login'|'none'} [opts.prompt='login'] - 'login'|'none' if set to
+   * 'none' then login will not prompt for credentials.
    * @return {Promise}
    */
   async login (opts = {}) {
-    opts.prompt = opts.prompt || LOGIN
     if (!this.isInitialized) {
       await this.init()
     }

@@ -24,7 +24,7 @@ const DEFAULT_OPTIONS = {
   responseType: 'code',
   flow: 'standard',
   pkceMethod: '',
-  prompt: 'none',
+  prompt: '',
   useStatusIframe: true,
   statusIframeInterval: 5,
   silentLoginRedirectUri: '/silent-login-check.html',
@@ -71,7 +71,7 @@ const formMeta = {
     ]
   },
   flow: { options: ['standard', 'hybrid', 'implicit'] },
-  prompt: { options: ['none', 'login'] },
+  prompt: { options: ['', 'none', 'login'] },
   pkceMethod: { options: ['', 'S256'] },
   useStatusIframe: { type: 'checkbox' },
   statusIframeInterval: { type: 'text' },

@@ -1,6 +1,7 @@
 import assert from 'assert'
 import jsdom from 'jsdom-global'
 import Client from '../src/index.js'
+// import Client from '../esm/index.min.js'
 import {
   CHANGED,
   UNCHANGED,

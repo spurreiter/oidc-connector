@@ -87,7 +87,7 @@ export function initOptions (options) {
     pkce: set(func(_opts.pkce), pkce),
     useStatusIframe: set(_opts.useStatusIframe, true),
     statusIframeInterval: set(number(_opts.statusIframeInterval), 5),
-    prompt: set(_opts.prompt, [NONE, LOGIN]),
+    prompt: set(_opts.prompt, [undefined, NONE, LOGIN]),
     silentLoginWait: set(number(_opts.silentLoginWait), 5),
     log
   }
