@@ -18,12 +18,12 @@ export class Tokens {
     /**
      * load tokens from localStorage
      */
-    loadTokens(): Tokens;
+    loadTokens(): this;
     fromInitOptions({ token, refreshToken, idToken }?: {
         token?: undefined;
         refreshToken?: undefined;
         idToken?: undefined;
-    }): Tokens;
+    }): this;
     startTokenRequest(): void;
     setTokens(tokenResponse?: {}): void;
     refreshToken: any;

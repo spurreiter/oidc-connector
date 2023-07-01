@@ -12,4 +12,4 @@ export class Callback {
         newUrl: string;
     } | undefined;
 }
-import { CallbackStorage } from "./storage.js";
+import { CallbackStorage } from './storage.js';
