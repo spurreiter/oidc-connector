@@ -272,10 +272,11 @@ export class Client extends EventEmitter {
 
   _handleLogout () {
     const { forceLogout } = this.options
-    this.tokens.clearTokens()
     this.emit('logout')
     if (forceLogout) {
       this.logout().catch(err => this._handleError(err))
+    } else {
+      this.tokens.clearTokens()
     }
   }
 
