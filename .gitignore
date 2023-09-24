@@ -8,3 +8,4 @@ tmp/
 .DS_Store
 *.log
 *.tgz
+pnpm-lock.yaml
