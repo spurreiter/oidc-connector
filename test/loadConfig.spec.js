@@ -1,10 +1,9 @@
-import jsdom from 'jsdom-global'
 import assert from 'assert'
 import http from 'http'
-import fetchPoly from 'whatwg-fetch'
 import { loadConfig } from '../src/utils/index.js'
 import { wellKnownOidcKeycloak, wellKnownOidcGoogle } from './fixtures/index.js'
 import debug from 'debug'
+import { jsdom } from './support/shims.js'
 
 const log = debug('test')
 
@@ -17,12 +16,6 @@ describe('utils/loadConfig', function () {
       referrer: `http://localhost:${port}`,
       contentType: 'text/html'
     })
-    if (!window.fetch) {
-      window.fetch = fetchPoly
-    }
-  })
-  after(function () {
-    this.jsdom()
   })
   before(function () {
     this.server = http.createServer((req, res) => {

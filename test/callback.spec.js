@@ -1,4 +1,4 @@
-import jsdom from 'jsdom-global'
+import { jsdom } from './support/shims.js'
 import assert from 'assert'
 import debug from 'debug'
 import { Callback } from '../src/utils/index.js'
@@ -24,9 +24,6 @@ describe('utils/Callback', function () {
       referrer: 'https://example.com/',
       contentType: 'text/html'
     })
-  })
-  after(function () {
-    this.jsdom()
   })
 
   describe('standard flow', function () {

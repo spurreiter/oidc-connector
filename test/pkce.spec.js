@@ -1,7 +1,6 @@
-import jsdom from 'jsdom-global'
 import assert from 'assert'
 import { pkce } from '../src/utils/pkce.js'
-import './support/shims.js'
+import { jsdom } from './support/shims.js'
 
 describe('pkce', function () {
   before(function () {
@@ -10,9 +9,6 @@ describe('pkce', function () {
       referrer: 'https://example.com/',
       contentType: 'text/html'
     })
-  })
-  after(function () {
-    this.jsdom()
   })
 
   it('shall generate challenge', async function () {

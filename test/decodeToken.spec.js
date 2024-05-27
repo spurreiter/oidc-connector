@@ -1,5 +1,5 @@
 import assert from 'assert'
-import jsdom from 'jsdom-global'
+import { jsdom } from './support/shims.js'
 import { decodeToken } from '../src/utils/index.js'
 
 describe('utils/decodeToken', function () {
@@ -9,9 +9,6 @@ describe('utils/decodeToken', function () {
       referrer: 'https://example.com/',
       contentType: 'text/html'
     })
-  })
-  after(function () {
-    this.jsdom()
   })
 
   it('shall decode', function () {
