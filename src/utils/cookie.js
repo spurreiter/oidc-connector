@@ -19,7 +19,7 @@ export function getCookies () {
   const ca = document.cookie.split(';')
   for (let i = 0; i < ca.length; i++) {
     const c = ca[i].trimStart()
-    const m = /^([^=]+)=(.*)$/.exec(c) // eslint-disable-line no-unused-vars
+    const m = /^([^=]+)=(.*)$/.exec(c)
     if (m) {
       // eslint-disable-next-line no-unused-vars
       const [_, key, value] = m
