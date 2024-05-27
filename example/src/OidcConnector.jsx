@@ -26,7 +26,7 @@ export const OidcConnector = ({ options, children }) => {
   }
 
   client.on('token', ({ token }) => {
-    setAuthenticated(!token ? false : true)
+    setAuthenticated(!!token)
   })
   client.on('error', (err) => {
     setError(err)
@@ -46,7 +46,7 @@ export const OidcConnector = ({ options, children }) => {
   /**
    * initialize logout
    */
-  const handleLogout = useMemo(() => ()=> {
+  const handleLogout = useMemo(() => () => {
     setLoading(true)
     return client.logout()
   })

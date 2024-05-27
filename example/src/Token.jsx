@@ -4,7 +4,7 @@ import { useContext, useState } from 'preact/hooks'
 import { OidcContext } from './OidcConnector.jsx'
 
 export const Token = () => {
-  const { isAuthenticated, client } = useContext(OidcContext)
+  const { /* isAuthenticated, */ client } = useContext(OidcContext)
 
   const [rerender, setRerender] = useState(false)
 
