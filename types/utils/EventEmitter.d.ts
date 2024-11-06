@@ -28,4 +28,4 @@ export class EventEmitter {
      */
     emit(eventName: eventName, ...args: any[]): void;
 }
-export type eventName = import('../client').eventName;
+export type eventName = import("../client").eventName;

@@ -26,7 +26,7 @@ const config = [
       globals: { ...globals.browser, ...globals.node, ...globals.mocha }
     }
   },
-  { ...pluginJs.configs.recommended },
+  pluginJs.configs.recommended,
   {
     rules: standardRules
   },

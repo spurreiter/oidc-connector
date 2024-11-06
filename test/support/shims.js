@@ -41,12 +41,18 @@ export const shim = () => {
   }
 }
 
+const nodeVersion = Number(process.version.slice(1).split('.')[0])
+
 export const jsdom = (html = defaultHtml, opts = {}) => {
   const dom = new JSDOM(html, {
     url: 'https://www.example.com',
     ...opts
   })
-  const keys = ['document', 'navigator', 'location', 'window', 'SVGElement', 'Element']
+  const keys = ['document', 'location', 'window', 'SVGElement', 'Element']
+  if (nodeVersion < 22) {
+    keys.push('navigator')
+  }
+
   Object.assign(
     globalThis,
     Object.fromEntries(keys.map((key) => [key, dom.window[key]]))
