@@ -1,5 +1,4 @@
 import assert from 'assert'
-import jsdom from 'jsdom-global'
 import Client from '../src/index.js'
 // import Client from '../esm/index.min.js'
 import {
@@ -8,6 +7,7 @@ import {
   ERROR
 } from '../src/constants.js'
 import { setup, mockStatusCreateIframe, mockSilentLoginCreateIframe, MockAdapter } from './support/index.js'
+import { jsdom } from './support/shims.js'
 
 function injectMocks (client, mockopts) {
   client.statusIframe.mock = opts => mockStatusCreateIframe({ ...opts, ...mockopts })
@@ -36,9 +36,6 @@ describe('Client', function () {
       url: origin,
       contentType: 'text/html'
     })
-  })
-  after(function () {
-    this.jsdom()
   })
   before(function () {
     this.server = setup({ port, silent: true }).listen(port)
@@ -83,7 +80,7 @@ describe('Client', function () {
       // return from authentication with the code
       window.location.href = newUrl
       const client = new Client(opts)
-      const tokens = await client.init()
+      const tokens = await client.init().catch(console.error)
       // console.log(tokens)
       assert.strictEqual(typeof tokens.token, 'string', 'shall return token')
       assert.strictEqual(typeof tokens.idToken, 'string', 'shall return id token')

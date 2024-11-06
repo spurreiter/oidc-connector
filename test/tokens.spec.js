@@ -1,8 +1,8 @@
 import assert from 'assert'
-import jsdom from 'jsdom-global'
 import sinon from 'sinon'
 import debug from 'debug'
 import { Tokens } from '../src/tokens.js'
+import { jsdom } from './support/shims.js'
 import { createToken } from './support/createToken.js'
 import './support/shims.js'
 
@@ -23,9 +23,6 @@ describe('tokens', function () {
       referrer: 'https://example.com/',
       contentType: 'text/html'
     })
-  })
-  after(function () {
-    this.jsdom()
   })
 
   describe('oidc tokens', function () {

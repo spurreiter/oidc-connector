@@ -4,7 +4,7 @@ import crypto from 'crypto'
 import fs from 'fs'
 import path from 'path'
 import { URL, URLSearchParams, fileURLToPath } from 'url'
-import jsrsasign from 'jsrsasign'
+import { generateKeypair, toJwks, jwtSign, jwtVerify } from './jwt.js'
 import express from 'express'
 import cors from 'cors'
 import cookieParser from 'cookie-parser'
@@ -35,9 +35,10 @@ function createUrl (url, query) {
 
 class RsaKey {
   constructor () {
-    this.rsaKey = jsrsasign.KEYUTIL.generateKeypair('RSA', 1024)
-    this.e = jsrsasign.hextob64u(this.rsaKey.pubKeyObj.e.toString(16))
-    this.n = jsrsasign.hextob64u(this.rsaKey.pubKeyObj.n.toString(16))
+    this.rsaKey = generateKeypair('RSA', 1024)
+    const { e, n } = toJwks(this.rsaKey.publicKey)
+    this.e = e
+    this.n = n
     this.kid = uuid4()
   }
 
@@ -50,19 +51,13 @@ class RsaKey {
 
   signToken (payload) {
     const { kid, rsaKey } = this
-    return jsrsasign.jws.JWS.sign(null, { alg: 'RS256', kid }, payload, rsaKey.prvKeyObj)
+    return jwtSign({ alg: 'RS256', kid }, payload, { privateKey: rsaKey.privateKey })
   }
 
-  verifyToken (token, { timeSkew = 15 } = {}) {
+  verifyToken (token) {
     try {
-      const ok = jsrsasign.jws.JWS.verify(token, this.rsaKey.pubKeyObj, ['RS256'])
-      const jws = new jsrsasign.jws.JWS()
-      jws.parseJWS(token)
-      const payload = JSON.parse(jws.parsedJWS.payloadS)
-      const now = (Date.now() / 1000 | 0)
-      if (ok && payload && payload.exp > (now - timeSkew) && payload.iat <= (now + timeSkew)) {
-        return payload
-      }
+      const decoded = jwtVerify(token, { publicKey: this.rsaKey.publicKey })
+      if (decoded) return decoded.payload
     } catch (e) {
       console.error(e)
     }
@@ -70,9 +65,8 @@ class RsaKey {
 }
 
 function hashAccessToken (token) {
-  const hash = jsrsasign.crypto.Util.hashString(token, 'sha256')
-  const left = hash.substr(0, hash.length / 2)
-  return jsrsasign.hextob64u(left)
+  const hash = crypto.createHash('sha256').update(token).digest('base64url')
+  return hash
 }
 
 function timingSafeEqual (_a, _b) {

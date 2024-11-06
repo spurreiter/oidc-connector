@@ -36,6 +36,7 @@ Verified to work with following OIDC servers/ services
 - [OpenAM](https://www.openidentityplatform.org/openam)
 - [ory/hydra](https://www.ory.sh/hydra/)
 - [Azure AD](https://login.microsoftonline.com/common/.well-known/openid-configuration)
+- [Zitadel](https://zitadel.com/)
 
 <small>*) If you have successfully used this client with other OIDC Servers
 please let us know through a PR or Issue.</small>

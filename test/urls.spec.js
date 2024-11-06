@@ -1,5 +1,5 @@
 import assert from 'assert'
-import jsdom from 'jsdom-global'
+import { jsdom } from './support/shims.js'
 import { clearUrl, absoluteUrl } from '../src/utils/index.js'
 
 describe('utils/urls', function () {
@@ -9,9 +9,6 @@ describe('utils/urls', function () {
       referrer: 'https://example.com/',
       contentType: 'text/html'
     })
-  })
-  after(function () {
-    this.jsdom()
   })
 
   describe('clearUrl', function () {

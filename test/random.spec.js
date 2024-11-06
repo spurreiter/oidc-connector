@@ -1,5 +1,5 @@
-import jsdom from 'jsdom-global'
 import assert from 'assert'
+import { jsdom } from './support/shims.js'
 import { uuid4 } from '../src/utils/index.js'
 
 describe('utils/random', function () {
@@ -10,9 +10,7 @@ describe('utils/random', function () {
       contentType: 'text/html'
     })
   })
-  after(function () {
-    this.jsdom()
-  })
+
   describe('uuid4', function () {
     it('shall create a uuid', function () {
       const uuid = uuid4()

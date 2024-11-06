@@ -1,5 +1,5 @@
-import jsdom from 'jsdom-global'
 import assert from 'assert'
+import { jsdom } from './support/shims.js'
 import { storage, LocalStorage, CookieStorage, CallbackStorage } from '../src/utils/storage.js'
 
 describe('utils/storage', function () {
@@ -9,9 +9,6 @@ describe('utils/storage', function () {
       referrer: 'https://example.com/',
       contentType: 'text/html'
     })
-  })
-  after(function () {
-    this.jsdom()
   })
 
   describe('storage', function () {

@@ -22,7 +22,7 @@ export const App = () => {
     <Fragment>
       <OidcConnector options={options}>
         <Navigation dispatch={dispatch} />
-        {info 
+        {info
           ? <pre className={isError ? 'error' : ''}>
             {JSON.stringify(info, null, 2)}
           </pre>

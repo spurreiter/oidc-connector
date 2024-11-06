@@ -6,7 +6,7 @@ const STORAGE_KEY = 'oidc-connector-example'
 
 const DEFAULT_OPTIONS = {
   log: console,
-  url: `http://localhost:3000/oidc`,
+  url: 'http://localhost:3000/oidc',
   realm: '',
   clientId: 'my-app',
   clientSecret: '',
@@ -95,21 +95,21 @@ const stringifyProps = ['authorizationParams', 'oidcConfig']
 
 const Input = ({ name, value }) => (
   <div>
-    <label for={name}>{name}:</label>
+    <label htmlFor={name}>{name}:</label>
     <input type="text" name={name} value={value} />
   </div>
 )
 
 const Checkbox = ({ name, value }) => (
   <div>
-    <label for={name}>{name}:</label>
+    <label htmlFor={name}>{name}:</label>
     <input type="checkbox" name={name} checked={!!value}/>
   </div>
 )
 
 const Select = ({ name, value, options }) => (
   <div>
-    <label for={name}>{name}:</label>
+    <label htmlFor={name}>{name}:</label>
     <select name={name} value={value}>
       {options.map(
         (option, key) => h('option', { key, value: option }, option))
@@ -168,7 +168,7 @@ export const Settings = ({ handleSave }) => {
   const formData = Object.entries(formMeta)
     .map(([name, meta]) => {
       const key = name
-      let value = options[name]
+      const value = options[name]
       if (meta.options) {
         return h(Select, { key, name, value, options: meta.options })
       } else if (meta.type === 'checkbox') {
@@ -180,7 +180,7 @@ export const Settings = ({ handleSave }) => {
 
   return (
     <section className={style.settings} >
-      <form ref={(ref) => {formId = ref}} onSubmit={onSave}>
+      <form ref={(ref) => { formId = ref }} onSubmit={onSave}>
       {formData}
       <div>
         <button type="submit" onClick={onSave}>save</button>

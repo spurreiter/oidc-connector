@@ -10,8 +10,8 @@
  * @returns {Options & OptionsExt}
  */
 export function initOptions(options: Options): Options & OptionsExt;
-export type Options = import('../client').Options;
-export type Logger = import('../client').Logger;
+export type Options = import("../client").Options;
+export type Logger = import("../client").Logger;
 export type OptionsExt = {
     log: Logger;
 };

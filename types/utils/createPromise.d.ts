@@ -9,4 +9,4 @@ export function debouncePromises(): {
     resolveAll: (result: any) => void;
     rejectAll: (err: any) => void;
 };
-export type Promised = import('../types').Promised;
+export type Promised = import("../types").Promised;

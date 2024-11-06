@@ -1,9 +1,8 @@
-import jsdom from 'jsdom-global'
 import assert from 'assert'
 import { Callback, pkce } from '../src/utils/index.js'
 import { endpoints } from '../src/endpoints.js'
 import debug from 'debug'
-import './support/shims.js'
+import { jsdom } from './support/shims.js'
 
 import { wellKnownOidcKeycloak } from './fixtures/index.js'
 
@@ -18,9 +17,6 @@ describe('endpoints', function () {
       referrer: 'https://example.com/',
       contentType: 'text/html'
     })
-  })
-  after(function () {
-    this.jsdom()
   })
 
   describe('oauth2 urls', function () {

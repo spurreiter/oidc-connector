@@ -4,7 +4,7 @@ import { fork } from 'child_process'
 import express from 'express'
 import path from 'path'
 import { fileURLToPath } from 'url'
-import { createServer as  createViteServer } from 'vite'
+import { createServer as createViteServer } from 'vite'
 
 const isDevMode = process.env.npm_lifecycle_event === 'dev' || process.env.MODE === 'dev'
 
@@ -44,7 +44,7 @@ const main = async () => {
 
   // starts the vite dev server
   const app = await setup({ port })
-  const server = app.listen(port, () => {
+  app.listen(port, () => {
     console.log(`open http://localhost:${port} in the browser.`)
   })
 
