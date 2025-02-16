@@ -1,5 +1,3 @@
-/* global globalThis */
-
 export const _globalThis = (() => {
   if (typeof globalThis !== 'undefined') {
     return globalThis

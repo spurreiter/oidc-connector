@@ -1,39 +1,42 @@
 export class Adapter {
-  initialize (client) {
+  initialize(client) {
     this.client = client
     this.endpoints = client.endpoints
     this.options = client.options
   }
 
-  _isInitialized () {
+  _isInitialized() {
     if (!this.options) throw new Error('adapter not initialized')
   }
 
-  redirectUri () {
+  redirectUri() {
     const url = new URL(location.href)
     url.search = url.hash = ''
     return this.options.redirectUri || url.toString()
   }
 
-  async login (opts) {
+  async login(opts) {
     this._isInitialized()
-    const url = await this.endpoints.createLoginUrl({ ...this.options, ...opts })
+    const url = await this.endpoints.createLoginUrl({
+      ...this.options,
+      ...opts
+    })
     window.location.replace(url)
   }
 
-  async register () {
+  async register() {
     this._isInitialized()
     const url = await this.endpoints.createRegisterUrl(this.options)
     window.location.replace(url)
   }
 
-  async logout ({ idToken }) {
+  async logout({ idToken }) {
     this._isInitialized()
     const url = await this.endpoints.createLogoutUrl(this.options, { idToken })
     window.location.replace(url)
   }
 
-  async account () {
+  async account() {
     this._isInitialized()
     const url = await this.endpoints.createAccountUrl(this.options)
     if (url) {

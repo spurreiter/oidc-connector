@@ -6,11 +6,17 @@ const ERROR = 'error'
 
 let init = false
 
-function checkState (clientId, sessionState, post) {
+function checkState(clientId, sessionState, post) {
   const cookie = getCookie('SESSION_STATE')
-  console.log('[sessionIframe] checkState "%s" "%s/%s"', cookie, clientId, sessionState)
+  console.log(
+    '[sessionIframe] checkState "%s" "%s/%s"',
+    cookie,
+    clientId,
+    sessionState
+  )
   const c = cookie.split('/')
-  if (!init && !c[1] && !c[2]) { // can't read cookie, maybe 3rd party cookies are blocked...
+  if (!init && !c[1] && !c[2]) {
+    // can't read cookie, maybe 3rd party cookies are blocked...
     post(ERROR)
   } else if (sessionState === c[1] && clientId === c[0]) {
     post(UNCHANGED)
@@ -20,7 +26,7 @@ function checkState (clientId, sessionState, post) {
   init = true
 }
 
-function getCookie (key) {
+function getCookie(key) {
   const name = key + '='
   const ca = document.cookie.split(';')
   for (let i = 0; i < ca.length; i++) {
@@ -32,7 +38,7 @@ function getCookie (key) {
   return ''
 }
 
-function receiveMessage (ev) {
+function receiveMessage(ev) {
   if (typeof ev.data !== 'string') {
     return
   }

@@ -12,7 +12,8 @@ describe('pkce', function () {
   })
 
   it('shall generate challenge', async function () {
-    const test = 'MtY8kxZz7FGKBECS3wGrRr81IsUbCbBR8RNuD6E8LOX7sX71o1NsmGM6y5WWboZpwNEjuQtYS1iwVKTa6LIZdGyw5Z6YtA88'
+    const test =
+      'MtY8kxZz7FGKBECS3wGrRr81IsUbCbBR8RNuD6E8LOX7sX71o1NsmGM6y5WWboZpwNEjuQtYS1iwVKTa6LIZdGyw5Z6YtA88'
     const pkceMethod = 'S256'
     const { challenge } = await pkce(pkceMethod, test)
     assert.strictEqual(challenge, 'bEWE7zzahbN4nzLN6BaVl9bkwj3fNJqyy_tkb5TlRR4')

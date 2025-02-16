@@ -18,20 +18,22 @@ describe('utils/loadConfig', function () {
     })
   })
   before(function () {
-    this.server = http.createServer((req, res) => {
-      const { method, url } = req
-      if (url === '/auth/realms/my/.well-known/openid-configuration') {
-        res.body = JSON.stringify(wellKnownOidcKeycloak)
-      } else if (url === '/auth/.well-known/openid-configuration') {
-        res.body = JSON.stringify(wellKnownOidcKeycloak)
-      } else if (url === '/other/.well-known/openid-configuration') {
-        res.body = JSON.stringify(wellKnownOidcGoogle)
-      } else {
-        res.statusCode = 404
-      }
-      log(res.statusCode, method, url)
-      res.end(res.body)
-    }).listen(3003)
+    this.server = http
+      .createServer((req, res) => {
+        const { method, url } = req
+        if (url === '/auth/realms/my/.well-known/openid-configuration') {
+          res.body = JSON.stringify(wellKnownOidcKeycloak)
+        } else if (url === '/auth/.well-known/openid-configuration') {
+          res.body = JSON.stringify(wellKnownOidcKeycloak)
+        } else if (url === '/other/.well-known/openid-configuration') {
+          res.body = JSON.stringify(wellKnownOidcGoogle)
+        } else {
+          res.statusCode = 404
+        }
+        log(res.statusCode, method, url)
+        res.end(res.body)
+      })
+      .listen(3003)
   })
   after(function () {
     this.server.close()
@@ -55,13 +57,13 @@ describe('utils/loadConfig', function () {
   })
 
   it('shall throw if url is missing', async function () {
-    await loadConfig({}).catch(err => {
+    await loadConfig({}).catch((err) => {
       assert.strictEqual(err.message, 'url missing')
     })
   })
 
   it('shall throw if clientId is missing', async function () {
-    await loadConfig({ url: 'http://localhost:8080/auth' }).catch(err => {
+    await loadConfig({ url: 'http://localhost:8080/auth' }).catch((err) => {
       assert.strictEqual(err.message, 'clientId missing')
     })
   })
@@ -104,8 +106,11 @@ describe('utils/loadConfig', function () {
     await loadConfig({
       url: `http://localhost:${port}/not-there`,
       clientId: 'local-server'
-    }).catch(err => {
-      assert.strictEqual(err.message, `error loading oidcConfig http://localhost:${port}/not-there/.well-known/openid-configuration`)
+    }).catch((err) => {
+      assert.strictEqual(
+        err.message,
+        `error loading oidcConfig http://localhost:${port}/not-there/.well-known/openid-configuration`
+      )
     })
   })
 })

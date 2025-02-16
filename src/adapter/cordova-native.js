@@ -4,7 +4,7 @@ import { createPromise } from '../utils/createPromise.js'
 
 const SUBKEY = 'oidc'
 
-function openUrl (url, eventFn) {
+function openUrl(url, eventFn) {
   if (eventFn) {
     universalLinks.subscribe(SUBKEY, (event) => {
       universalLinks.unsubscribe(SUBKEY)
@@ -16,53 +16,58 @@ function openUrl (url, eventFn) {
 }
 
 export class AdapterCordovaNative {
-  initialize (client) {
+  initialize(client) {
     client.statusIframe.disable()
     this.client = client
     this.options = client.options
     this.endpoints = client.endpoints
   }
 
-  _isInitialized () {
+  _isInitialized() {
     if (!this.options) throw new Error('adapter not initialized')
   }
 
-  redirectUri () {
+  redirectUri() {
     return 'http://localhost'
   }
 
-  async login (opts) {
+  async login(opts) {
     this._isInitialized()
     const promise = createPromise()
     const { client } = this
 
-    const url = await this.endpoints.createLoginUrl({ ...this.options, ...opts })
+    const url = await this.endpoints.createLoginUrl({
+      ...this.options,
+      ...opts
+    })
     openUrl(url, (event) => {
       const oauth = client.callback.parse(event.url)
-      client._processCallback(oauth)
-        .then(res => promise.resolve(res))
-        .catch(err => promise.reject(err))
+      client
+        ._processCallback(oauth)
+        .then((res) => promise.resolve(res))
+        .catch((err) => promise.reject(err))
     })
 
     return promise
   }
 
-  async register () {
+  async register() {
     this._isInitialized()
     const promise = createPromise()
     const { client } = this
     const url = await this.endpoints.createRegisterUrl(this.options)
     openUrl(url, (event) => {
       const oauth = client.callback.parse(event.url)
-      client._processCallback(oauth)
-        .then(res => promise.resolve(res))
-        .catch(err => promise.reject(err))
+      client
+        ._processCallback(oauth)
+        .then((res) => promise.resolve(res))
+        .catch((err) => promise.reject(err))
     })
 
     return promise
   }
 
-  async logout ({ idToken }) {
+  async logout({ idToken }) {
     this._isInitialized()
     const promise = createPromise()
     const url = await this.endpoints.createLogoutUrl(this.options, { idToken })
@@ -75,7 +80,7 @@ export class AdapterCordovaNative {
     return promise
   }
 
-  async account () {
+  async account() {
     this._isInitialized()
     const url = await this.endpoints.createAccountUrl(this.options)
     if (typeof url !== 'undefined') {

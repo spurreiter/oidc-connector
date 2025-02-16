@@ -1,6 +1,6 @@
 import { clearUrl } from './urls.js'
 
-export async function loadConfig (config) {
+export async function loadConfig(config) {
   if (!config.url) {
     return Promise.reject(new Error('url missing'))
   }
@@ -15,10 +15,7 @@ export async function loadConfig (config) {
     userAccountEndpoint,
     ..._config
   } = config
-  _config.serverUrl = clearUrl(realm
-    ? `${url}/realms/${realm}`
-    : url
-  )
+  _config.serverUrl = clearUrl(realm ? `${url}/realms/${realm}` : url)
 
   let oidcConfigUrl = `${_config.serverUrl}/.well-known/openid-configuration`
   if (typeof _config.oidcConfig === 'string') {
@@ -37,7 +34,9 @@ export async function loadConfig (config) {
       headers: { Accept: 'application/json' }
     })
     if (res.status !== 200) {
-      return Promise.reject(new Error(`error loading oidcConfig ${oidcConfigUrl}`))
+      return Promise.reject(
+        new Error(`error loading oidcConfig ${oidcConfigUrl}`)
+      )
     }
     const oidcConfig = await res.json()
     return {

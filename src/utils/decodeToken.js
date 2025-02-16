@@ -10,9 +10,9 @@ const RE_MAP = /[_-]/g
  * @param {string} [token='']
  * @return {object} payload of decoded token
  */
-export function decodeToken (token = '') {
+export function decodeToken(token = '') {
   const payload = token.split('.')[1]
-  let b64 = payload.replace(RE_MAP, m => map[m])
+  let b64 = payload.replace(RE_MAP, (m) => map[m])
 
   switch (b64.length % 4) {
     case 0:

@@ -32,8 +32,12 @@ describe('tokens', function () {
     before(function () {
       tokens = new Tokens({ log: _log, useNonce: true })
     })
-    before(function () { this.clock = sinon.useFakeTimers() })
-    after(function () { this.clock.restore() })
+    before(function () {
+      this.clock = sinon.useFakeTimers()
+    })
+    after(function () {
+      this.clock.restore()
+    })
 
     it('shall authenticate with calcuating the correct time skew value', function () {
       const exp = 300
@@ -115,8 +119,12 @@ describe('tokens', function () {
       tokens = new Tokens({ log: _log, useNonce: true })
     })
 
-    before(function () { this.clock = sinon.useFakeTimers(0) })
-    after(function () { this.clock.restore() })
+    before(function () {
+      this.clock = sinon.useFakeTimers(0)
+    })
+    after(function () {
+      this.clock.restore()
+    })
 
     it('shall authenticate with calcuating the correct time skew value', function () {
       const exp = 300
@@ -167,8 +175,12 @@ describe('tokens', function () {
       tokens = new Tokens({ log: _log, useNonce: true })
     })
 
-    before(function () { this.clock = sinon.useFakeTimers() })
-    after(function () { this.clock.restore() })
+    before(function () {
+      this.clock = sinon.useFakeTimers()
+    })
+    after(function () {
+      this.clock.restore()
+    })
 
     it('shall authenticate with calcuating the correct time skew value', function () {
       const exp = 300

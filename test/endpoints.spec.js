@@ -8,7 +8,11 @@ import { wellKnownOidcKeycloak } from './fixtures/index.js'
 
 const log = debug('test')
 
-const searchParams = u => Array.from(u.searchParams).reduce((o, [key, val]) => { o[key] = val; return o }, {})
+const searchParams = (u) =>
+  Array.from(u.searchParams).reduce((o, [key, val]) => {
+    o[key] = val
+    return o
+  }, {})
 
 describe('endpoints', function () {
   before(function () {
@@ -34,27 +38,45 @@ describe('endpoints', function () {
     })
 
     it('shall return authorize url', function () {
-      assert.strictEqual(ep.authorize(), serverUrl + '/protocol/openid-connect/auth')
+      assert.strictEqual(
+        ep.authorize(),
+        serverUrl + '/protocol/openid-connect/auth'
+      )
     })
 
     it('shall return register url', function () {
-      assert.strictEqual(ep.register(), serverUrl + '/protocol/openid-connect/registrations')
+      assert.strictEqual(
+        ep.register(),
+        serverUrl + '/protocol/openid-connect/registrations'
+      )
     })
 
     it('shall return token url', function () {
-      assert.strictEqual(ep.token(), serverUrl + '/protocol/openid-connect/token')
+      assert.strictEqual(
+        ep.token(),
+        serverUrl + '/protocol/openid-connect/token'
+      )
     })
 
     it('shall return logout url', function () {
-      assert.strictEqual(ep.logout(), serverUrl + '/protocol/openid-connect/logout')
+      assert.strictEqual(
+        ep.logout(),
+        serverUrl + '/protocol/openid-connect/logout'
+      )
     })
 
     it('shall return session login url', function () {
-      assert.strictEqual(ep.checkSessionIframe(), serverUrl + '/protocol/openid-connect/login-status-iframe.html')
+      assert.strictEqual(
+        ep.checkSessionIframe(),
+        serverUrl + '/protocol/openid-connect/login-status-iframe.html'
+      )
     })
 
     it('shall return userinfo url', function () {
-      assert.strictEqual(ep.userinfo(), serverUrl + '/protocol/openid-connect/userinfo')
+      assert.strictEqual(
+        ep.userinfo(),
+        serverUrl + '/protocol/openid-connect/userinfo'
+      )
     })
   })
 
@@ -83,7 +105,10 @@ describe('endpoints', function () {
       assert.ok(cb._store.get(state), 'should get state from callback store')
 
       assert.strictEqual(u.host, 'localhost:8080')
-      assert.strictEqual(u.pathname, '/auth/realms/my/protocol/openid-connect/auth')
+      assert.strictEqual(
+        u.pathname,
+        '/auth/realms/my/protocol/openid-connect/auth'
+      )
 
       const query = searchParams(u)
       query.state = query.state && '**'
@@ -124,7 +149,10 @@ describe('endpoints', function () {
       assert.ok(cbState, 'should get state from callback store')
 
       assert.strictEqual(u.host, 'localhost:8080')
-      assert.strictEqual(u.pathname, '/auth/realms/my/protocol/openid-connect/registrations')
+      assert.strictEqual(
+        u.pathname,
+        '/auth/realms/my/protocol/openid-connect/registrations'
+      )
 
       const query = searchParams(u)
       log(query)
@@ -167,7 +195,10 @@ describe('endpoints', function () {
       assert.ok(cb._store.get(state), 'should get state from callback store')
 
       assert.strictEqual(u.host, 'localhost:8080')
-      assert.strictEqual(u.pathname, '/auth/realms/my/protocol/openid-connect/auth')
+      assert.strictEqual(
+        u.pathname,
+        '/auth/realms/my/protocol/openid-connect/auth'
+      )
 
       const query = searchParams(u)
       query.state = query.state && '**'
@@ -210,7 +241,10 @@ describe('endpoints', function () {
       assert.ok(cb._store.get(state), 'should get state from callback store')
 
       assert.strictEqual(u.host, 'localhost:8080')
-      assert.strictEqual(u.pathname, '/auth/realms/my/protocol/openid-connect/registrations')
+      assert.strictEqual(
+        u.pathname,
+        '/auth/realms/my/protocol/openid-connect/registrations'
+      )
 
       const query = searchParams(u)
       query.state = query.state && '**'
@@ -242,7 +276,10 @@ describe('endpoints', function () {
       const u = new URL(url)
 
       assert.strictEqual(u.host, 'localhost:8080')
-      assert.strictEqual(u.pathname, '/auth/realms/my/protocol/openid-connect/logout')
+      assert.strictEqual(
+        u.pathname,
+        '/auth/realms/my/protocol/openid-connect/logout'
+      )
 
       const query = searchParams(u)
 
@@ -263,7 +300,10 @@ describe('endpoints', function () {
       const u = new URL(url)
 
       assert.strictEqual(u.host, 'localhost:8080')
-      assert.strictEqual(u.pathname, '/auth/realms/my/protocol/openid-connect/logout')
+      assert.strictEqual(
+        u.pathname,
+        '/auth/realms/my/protocol/openid-connect/logout'
+      )
 
       const query = searchParams(u)
 

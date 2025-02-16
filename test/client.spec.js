@@ -1,24 +1,28 @@
 import assert from 'assert'
 import Client from '../src/index.js'
 // import Client from '../esm/index.min.js'
+import { CHANGED, UNCHANGED, ERROR } from '../src/constants.js'
 import {
-  CHANGED,
-  UNCHANGED,
-  ERROR
-} from '../src/constants.js'
-import { setup, mockStatusCreateIframe, mockSilentLoginCreateIframe, MockAdapter } from './support/index.js'
+  setup,
+  mockStatusCreateIframe,
+  mockSilentLoginCreateIframe,
+  MockAdapter
+} from './support/index.js'
 import { jsdom } from './support/shims.js'
 
-function injectMocks (client, mockopts) {
-  client.statusIframe.mock = opts => mockStatusCreateIframe({ ...opts, ...mockopts })
-  client.checkSilentLogin.mock = opts => mockSilentLoginCreateIframe({ ...opts, ...mockopts })
+function injectMocks(client, mockopts) {
+  client.statusIframe.mock = (opts) =>
+    mockStatusCreateIframe({ ...opts, ...mockopts })
+  client.checkSilentLogin.mock = (opts) =>
+    mockSilentLoginCreateIframe({ ...opts, ...mockopts })
 }
 
-function params (url) {
-  const reduce = (sp) => Array.from(sp).reduce((o, [key, val]) => {
-    o[key] = val
-    return o
-  }, {})
+function params(url) {
+  const reduce = (sp) =>
+    Array.from(sp).reduce((o, [key, val]) => {
+      o[key] = val
+      return o
+    }, {})
   const u = new URL(url)
   const h = new URLSearchParams(u.hash.replace(/^#/, ''))
   return {
@@ -83,8 +87,16 @@ describe('Client', function () {
       const tokens = await client.init().catch(console.error)
       // console.log(tokens)
       assert.strictEqual(typeof tokens.token, 'string', 'shall return token')
-      assert.strictEqual(typeof tokens.idToken, 'string', 'shall return id token')
-      assert.strictEqual(typeof tokens.refreshToken, 'string', 'shall return refresh token')
+      assert.strictEqual(
+        typeof tokens.idToken,
+        'string',
+        'shall return id token'
+      )
+      assert.strictEqual(
+        typeof tokens.refreshToken,
+        'string',
+        'shall return refresh token'
+      )
 
       const token = await client.accessToken()
       assert.strictEqual(token, tokens.token, 'shall get access token')
@@ -109,8 +121,16 @@ describe('Client', function () {
       const tokens = await client.init()
       // console.log(tokens)
       assert.strictEqual(typeof tokens.token, 'string', 'shall return token')
-      assert.strictEqual(typeof tokens.idToken, 'string', 'shall return id token')
-      assert.strictEqual(typeof tokens.refreshToken, 'string', 'shall return refresh token')
+      assert.strictEqual(
+        typeof tokens.idToken,
+        'string',
+        'shall return id token'
+      )
+      assert.strictEqual(
+        typeof tokens.refreshToken,
+        'string',
+        'shall return refresh token'
+      )
 
       const token = await client.accessToken()
       assert.strictEqual(token, tokens.token, 'shall get access token')
@@ -128,7 +148,11 @@ describe('Client', function () {
       const tokens1 = await client1.init()
       // console.log(tokens1)
       assert.strictEqual(typeof tokens1.token, 'string', 'shall return token')
-      assert.strictEqual(typeof tokens1.refreshToken, 'string', 'shall return refresh token')
+      assert.strictEqual(
+        typeof tokens1.refreshToken,
+        'string',
+        'shall return refresh token'
+      )
 
       // refresh page
       window.location.href = origin
@@ -136,9 +160,16 @@ describe('Client', function () {
       const tokens = await client.init()
       // console.log(tokens)
       assert.strictEqual(typeof tokens.token, 'string', 'shall return token')
-      assert.strictEqual(typeof tokens.refreshToken, 'string', 'shall return refresh token')
+      assert.strictEqual(
+        typeof tokens.refreshToken,
+        'string',
+        'shall return refresh token'
+      )
       assert.ok(tokens.token !== tokens1.token, 'obtained token shall differ')
-      assert.ok(tokens.refreshToken !== tokens1.refreshToken, 'obtained refresh token shall differ')
+      assert.ok(
+        tokens.refreshToken !== tokens1.refreshToken,
+        'obtained refresh token shall differ'
+      )
     })
 
     it('shall reinitialize with access token only', async function () {
@@ -166,7 +197,10 @@ describe('Client', function () {
         'undefined',
         'shall not have a refresh token'
       )
-      assert.ok(tokens.token === tokens1.token, 'obtained token shall be the same')
+      assert.ok(
+        tokens.token === tokens1.token,
+        'obtained token shall be the same'
+      )
     })
 
     it('shall obtain tokens in implicit flow', async function () {
@@ -199,27 +233,34 @@ describe('Client', function () {
       const tokens = await client.init()
       // console.log(tokens)
       assert.strictEqual(typeof tokens.token, 'string', 'shall return token')
-      assert.strictEqual(typeof tokens.idToken, 'string', 'shall return id token')
-      assert.strictEqual(typeof tokens.refreshToken, 'undefined', 'shall not return a refresh token')
+      assert.strictEqual(
+        typeof tokens.idToken,
+        'string',
+        'shall return id token'
+      )
+      assert.strictEqual(
+        typeof tokens.refreshToken,
+        'undefined',
+        'shall not return a refresh token'
+      )
 
       const token = await client.accessToken()
       assert.strictEqual(token, tokens.token, 'shall get access token')
     })
 
     it('shall obtain tokens in hybrid flow', async function () {
-      const opts = { ...clientOpts, flow: 'hybrid', responseType: 'code id_token' }
+      const opts = {
+        ...clientOpts,
+        flow: 'hybrid',
+        responseType: 'code id_token'
+      }
       const client0 = new Client(opts)
       await client0.init()
       const newUrl = await client0.login()
       // console.log(params(newUrl))
       assert.deepStrictEqual(
         Object.keys(params(newUrl).hash).sort(),
-        [
-          'code',
-          'id_token',
-          'session_state',
-          'state'
-        ],
+        ['code', 'id_token', 'session_state', 'state'],
         'shall return hybrid flow hash params'
       )
 
@@ -228,22 +269,45 @@ describe('Client', function () {
       const client = new Client(opts)
       const tokens = await client.init()
       // console.log(tokens)
-      assert.strictEqual(typeof tokens.token, 'string', 'shall not return token')
-      assert.strictEqual(typeof tokens.idToken, 'string', 'shall return id token')
-      assert.strictEqual(typeof tokens.refreshToken, 'string', 'shall return a refresh token')
+      assert.strictEqual(
+        typeof tokens.token,
+        'string',
+        'shall not return token'
+      )
+      assert.strictEqual(
+        typeof tokens.idToken,
+        'string',
+        'shall return id token'
+      )
+      assert.strictEqual(
+        typeof tokens.refreshToken,
+        'string',
+        'shall return a refresh token'
+      )
     })
   })
 
   describe('silentLogin', function () {
     it('shall obtain tokens in standard flow', async function () {
-      const opts = { ...clientOpts, silentLoginRedirectUri: '/silent-login-check.html' }
+      const opts = {
+        ...clientOpts,
+        silentLoginRedirectUri: '/silent-login-check.html'
+      }
       const client = new Client(opts)
       injectMocks(client)
       await client.init()
       const tokens = await client.silentLogin()
       assert.strictEqual(typeof tokens.token, 'string', 'shall return token')
-      assert.strictEqual(typeof tokens.idToken, 'string', 'shall return id token')
-      assert.strictEqual(typeof tokens.refreshToken, 'string', 'shall return refresh token')
+      assert.strictEqual(
+        typeof tokens.idToken,
+        'string',
+        'shall return id token'
+      )
+      assert.strictEqual(
+        typeof tokens.refreshToken,
+        'string',
+        'shall return refresh token'
+      )
     })
 
     it('shall fail if silent login redirect url is missing', async function () {
@@ -276,13 +340,14 @@ describe('Client', function () {
       const client = new Client(opts)
       injectMocks(client, { error: 'login_required' })
       await client.init()
-      await client.silentLogin().catch(err => {
+      await client.silentLogin().catch((err) => {
         assert.strictEqual(err.message, 'login_required')
       })
     })
   })
 
-  const timeout = (ms) => new Promise(resolve => setTimeout(() => resolve(), ms))
+  const timeout = (ms) =>
+    new Promise((resolve) => setTimeout(() => resolve(), ms))
 
   describe('status iframe', function () {
     beforeEach(async function () {
@@ -308,7 +373,7 @@ describe('Client', function () {
         ok: () => stats.logout === 0 && stats.error.length === 0
       }
       client.on('logout', () => stats.logout++)
-      client.on('err', err => stats.error.push(err))
+      client.on('err', (err) => stats.error.push(err))
       return stats
     }
 
@@ -322,7 +387,10 @@ describe('Client', function () {
       await timeout(200)
       await client.logout()
       assert.ok(stats.ok())
-      assert.ok(client.statusIframe.iframe.count > 2, 'shall call status iframe more than 2x')
+      assert.ok(
+        client.statusIframe.iframe.count > 2,
+        'shall call status iframe more than 2x'
+      )
     })
 
     it('shall not logout on 1st error', async function () {
@@ -335,7 +403,10 @@ describe('Client', function () {
       await timeout(200)
       await client.logout()
       assert.ok(stats.ok())
-      assert.ok(client.statusIframe.iframe.count === 1, 'shall disable status iframe')
+      assert.ok(
+        client.statusIframe.iframe.count === 1,
+        'shall disable status iframe'
+      )
     })
 
     it('shall not logout on 1st changed', async function () {
@@ -348,7 +419,10 @@ describe('Client', function () {
       await timeout(200)
       await client.logout()
       assert.ok(stats.ok())
-      assert.ok(client.statusIframe.iframe.count === 1, 'shall disable status iframe')
+      assert.ok(
+        client.statusIframe.iframe.count === 1,
+        'shall disable status iframe'
+      )
     })
 
     it('shall logout if 2nd status is changed', async function () {

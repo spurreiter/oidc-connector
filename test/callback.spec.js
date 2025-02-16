@@ -29,7 +29,8 @@ describe('utils/Callback', function () {
   describe('standard flow', function () {
     it('response mode query', function () {
       const cb = new Callback({ log, flow: STANDARD, responseMode: QUERY })
-      const url = 'http://example.org?response_mode=query&code=mycode&session_state=mysessionstate&state=teststate&other=testother#other=hash'
+      const url =
+        'http://example.org?response_mode=query&code=mycode&session_state=mysessionstate&state=teststate&other=testother#other=hash'
       const r = cb.parse(url)
       assert.deepStrictEqual(r, {
         code: 'mycode',
@@ -49,7 +50,8 @@ describe('utils/Callback', function () {
         prompt: 'none',
         pkceCodeVerifier: 'pkce'
       })
-      const url = 'http://example.org#response_mode=fragment&code=mycode&session_state=mysessionstate&state=storedstate&other=testother'
+      const url =
+        'http://example.org#response_mode=fragment&code=mycode&session_state=mysessionstate&state=storedstate&other=testother'
       const r = cb.parse(url)
 
       assert.deepStrictEqual(r, {
@@ -75,7 +77,8 @@ describe('utils/Callback', function () {
         prompt: 'none',
         pkceCodeVerifier: 'pkce'
       })
-      const url = 'http://example.org#response_mode=fragment&code=mycode&session_state=mysessionstate&state=teststate&other=testother'
+      const url =
+        'http://example.org#response_mode=fragment&code=mycode&session_state=mysessionstate&state=teststate&other=testother'
       const r = cb.parse(url)
 
       assert.deepStrictEqual(r, {
@@ -89,14 +92,16 @@ describe('utils/Callback', function () {
 
     it('response mode query with wrong response', function () {
       const cb = new Callback({ log, flow: STANDARD, responseMode: QUERY })
-      const url = 'http://example.org?other=query#response_mode=fragment&code=mycode&session_state=mysessionstate&state=teststate&other=testother'
+      const url =
+        'http://example.org?other=query#response_mode=fragment&code=mycode&session_state=mysessionstate&state=teststate&other=testother'
       const r = cb.parse(url)
       assert.strictEqual(r, undefined)
     })
 
     it('response mode fragment', function () {
       const cb = new Callback({ log, flow: STANDARD, responseMode: FRAGMENT })
-      const url = 'http://example.org?other=query#response_mode=query&code=mycode&session_state=mysessionstate&state=teststate&other=testother'
+      const url =
+        'http://example.org?other=query#response_mode=query&code=mycode&session_state=mysessionstate&state=teststate&other=testother'
       const r = cb.parse(url)
       assert.deepStrictEqual(r, {
         code: 'mycode',
@@ -109,21 +114,24 @@ describe('utils/Callback', function () {
 
     it('response mode fragment with wrong response', function () {
       const cb = new Callback({ log, flow: STANDARD, responseMode: QUERY })
-      const url = 'http://example.org?other=query#response_mode=fragment&code=mycode&session_state=mysessionstate&state=teststate&other=testother'
+      const url =
+        'http://example.org?other=query#response_mode=fragment&code=mycode&session_state=mysessionstate&state=teststate&other=testother'
       const r = cb.parse(url)
       assert.strictEqual(r, undefined)
     })
 
     it('requires code', function () {
       const cb = new Callback({ log, flow: STANDARD, responseMode: QUERY })
-      const url = 'http://example.org?response_mode=query&session_state=mysessionstate&state=teststate'
+      const url =
+        'http://example.org?response_mode=query&session_state=mysessionstate&state=teststate'
       const r = cb.parse(url)
       assert.strictEqual(r, undefined)
     })
 
     it('requires state', function () {
       const cb = new Callback({ log, flow: STANDARD, responseMode: QUERY })
-      const url = 'http://example.org?response_mode=query&code=mycode&session_state=mysessionstate'
+      const url =
+        'http://example.org?response_mode=query&code=mycode&session_state=mysessionstate'
       const r = cb.parse(url)
       assert.strictEqual(r, undefined)
     })
@@ -132,7 +140,8 @@ describe('utils/Callback', function () {
   describe('hybrid flow', function () {
     it('response mode query', function () {
       const cb = new Callback({ log, flow: HYBRID, responseMode: QUERY })
-      const url = 'http://example.org?access_token=token&response_mode=query&code=mycode&session_state=mysessionstate&state=teststate&other=testother#other=hash'
+      const url =
+        'http://example.org?access_token=token&response_mode=query&code=mycode&session_state=mysessionstate&state=teststate&other=testother#other=hash'
       const r = cb.parse(url)
       assert.deepStrictEqual(r, {
         access_token: 'token',
@@ -146,14 +155,16 @@ describe('utils/Callback', function () {
 
     it('requires code', function () {
       const cb = new Callback({ log, flow: HYBRID, responseMode: QUERY })
-      const url = 'http://example.org?response_mode=query&session_state=mysessionstate&state=teststate'
+      const url =
+        'http://example.org?response_mode=query&session_state=mysessionstate&state=teststate'
       const r = cb.parse(url)
       assert.strictEqual(r, undefined)
     })
 
     it('requires state', function () {
       const cb = new Callback({ log, flow: HYBRID, responseMode: QUERY })
-      const url = 'http://example.org?response_mode=query&code=mycode&session_state=mysessionstate'
+      const url =
+        'http://example.org?response_mode=query&code=mycode&session_state=mysessionstate'
       const r = cb.parse(url)
       assert.strictEqual(r, undefined)
     })
@@ -162,7 +173,8 @@ describe('utils/Callback', function () {
   describe('implicit flow', function () {
     it('response mode query', function () {
       const cb = new Callback({ log, flow: IMPLICIT, responseMode: QUERY })
-      const url = 'http://example.org?access_token=token&response_mode=query&code=mycode&session_state=mysessionstate&state=teststate&other=testother#other=hash'
+      const url =
+        'http://example.org?access_token=token&response_mode=query&code=mycode&session_state=mysessionstate&state=teststate&other=testother#other=hash'
       const r = cb.parse(url)
       assert.deepStrictEqual(r, {
         access_token: 'token',
@@ -176,21 +188,24 @@ describe('utils/Callback', function () {
 
     it('requires access_token', function () {
       const cb = new Callback({ log, flow: IMPLICIT, responseMode: QUERY })
-      const url = 'http://example.org?response_mode=query&session_state=mysessionstate&state=teststate'
+      const url =
+        'http://example.org?response_mode=query&session_state=mysessionstate&state=teststate'
       const r = cb.parse(url)
       assert.strictEqual(r, undefined)
     })
 
     it('requires state', function () {
       const cb = new Callback({ log, flow: IMPLICIT, responseMode: QUERY })
-      const url = 'http://example.org?response_mode=query&access_token=token&session_state=mysessionstate'
+      const url =
+        'http://example.org?response_mode=query&access_token=token&session_state=mysessionstate'
       const r = cb.parse(url)
       assert.strictEqual(r, undefined)
     })
 
     it('returns error', function () {
       const cb = new Callback({ log, flow: IMPLICIT, responseMode: QUERY })
-      const url = 'http://example.org?response_mode=query&error=invalid+token&state=mystate'
+      const url =
+        'http://example.org?response_mode=query&error=invalid+token&state=mystate'
       const r = cb.parse(url)
       assert.deepStrictEqual(r, {
         error: 'invalid token',

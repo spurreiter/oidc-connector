@@ -1,6 +1,6 @@
 import { _globalThis } from './globalThis.js'
 
-export function genRandomData (len) {
+export function genRandomData(len) {
   // use web crypto APIs if possible
   // @ts-ignore
   const crypto = _globalThis.crypto || _globalThis.msCrypto
@@ -19,10 +19,10 @@ export function genRandomData (len) {
   return array
 }
 
-export function uuid4 () {
+export function uuid4() {
   const arr = genRandomData(32)
   // @ts-ignore
-  return ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, c =>
+  return ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, (c) =>
     (c ^ (arr.pop() & (15 >> (c / 4)))).toString(16)
   )
 }

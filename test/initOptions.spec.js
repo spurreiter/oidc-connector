@@ -13,6 +13,7 @@ const testLog = (_log) => {
 
 describe('utils/initOptions', function () {
   it('shall apply default options', function () {
+    // eslint-disable-next-line no-unused-vars
     const { log: _log, pkce, ...opts } = initOptions()
     log(opts)
 
@@ -37,7 +38,12 @@ describe('utils/initOptions', function () {
   })
 
   it('shall fallback to default options', function () {
-    const { log: _log, pkce, ...opts } = initOptions({
+    const {
+      log: _log,
+      // eslint-disable-next-line no-unused-vars
+      pkce,
+      ...opts
+    } = initOptions({
       useNonce: '##',
       useStatusIframe: '##',
       statusIframeInterval: '##',

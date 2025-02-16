@@ -1,34 +1,38 @@
 import request from 'superagent'
 
 export class MockAdapter {
-  _isInitialized () {
+  _isInitialized() {
     if (!this.options) throw new Error('adapter not initialized')
   }
 
-  initialize (client) {
+  initialize(client) {
     this.client = client
     this.endpoints = client.endpoints
     this.options = client.options
   }
 
-  redirectUri () {
+  redirectUri() {
     const url = new URL(location.href)
     url.search = url.hash = ''
     return this.options.redirectUri || url.toString()
   }
 
-  async login (opts) {
+  async login(opts) {
     this._isInitialized()
-    const url = await this.endpoints.createLoginUrl({ ...this.options, ...opts })
-    return request.get(url)
+    const url = await this.endpoints.createLoginUrl({
+      ...this.options,
+      ...opts
+    })
+    return request
+      .get(url)
       .redirects(0)
-      .catch(err => {
+      .catch((err) => {
         const res = err.response
         return res.headers.location
       })
   }
 
-  async logout () {
+  async logout() {
     // console.log('logout', new Error())
   }
 }

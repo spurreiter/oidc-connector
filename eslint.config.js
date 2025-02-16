@@ -1,23 +1,6 @@
 import globals from 'globals'
 import pluginJs from '@eslint/js'
-import standard from 'eslint-config-standard'
 import pluginReact from 'eslint-plugin-react'
-
-// remove plugin rules from standard config
-const standardRules = Object.entries(standard.rules).reduce(
-  (rules, [key, val]) => {
-    if (
-      key.startsWith('import/') ||
-      key.startsWith('n/') ||
-      key.startsWith('promise/')
-    ) {
-      return rules
-    }
-    rules[key] = val
-    return rules
-  },
-  {}
-)
 
 const config = [
   {
@@ -27,9 +10,6 @@ const config = [
     }
   },
   pluginJs.configs.recommended,
-  {
-    rules: standardRules
-  },
   {
     ignores: ['**/dist/', 'esm/', 'coverage/']
   },
@@ -54,7 +34,11 @@ const config = [
     },
     rules: {
       ...pluginReact.configs.recommended.rules,
-      'react/prop-types': ['off']
+      'react/prop-types': ['off'],
+      'no-unused-vars': [
+        'error',
+        { varsIgnorePattern: '^_', caughtErrorsIgnorePattern: '^_err' }
+      ]
     }
   }
 ]

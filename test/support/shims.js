@@ -11,7 +11,8 @@ export const shim = () => {
     globalThis.crypto = {}
   }
   if (!globalThis.crypto.getRandomValues) {
-    globalThis.crypto.getRandomValues = (uint8Array) => crypto.randomFillSync(uint8Array)
+    globalThis.crypto.getRandomValues = (uint8Array) =>
+      crypto.randomFillSync(uint8Array)
   }
   if (!globalThis.crypto.subtle) {
     globalThis.crypto.subtle = {}

@@ -1,20 +1,22 @@
 import { decodeToken, get, storage } from './utils/index.js'
 
-import {
-  NONE,
-  SESSION_STATE,
-  S_MEMORY,
-  S_SESSION
-} from './constants.js'
+import { NONE, SESSION_STATE, S_MEMORY, S_SESSION } from './constants.js'
 
 const now = () => Math.ceil(new Date().getTime() / 1000)
 
-const toNumber = (num, def) => !isNaN(Number(num)) ? Number(num) : def
+const toNumber = (num, def) => (!isNaN(Number(num)) ? Number(num) : def)
 
-const claim = (t, claim, def) => get(t, ['idTokenParsed', claim], get(t, ['tokenParsed', claim], def))
+const claim = (t, claim, def) =>
+  get(t, ['idTokenParsed', claim], get(t, ['tokenParsed', claim], def))
 
 export class Tokens {
-  constructor ({ log = undefined, useNonce = undefined, minValidity = undefined, clientId = undefined, storage = S_SESSION } = {}) {
+  constructor({
+    log = undefined,
+    useNonce = undefined,
+    minValidity = undefined,
+    clientId = undefined,
+    storage = S_SESSION
+  } = {}) {
     this.log = log
     this._useNonce = useNonce
     this._authenticated = false
@@ -25,20 +27,24 @@ export class Tokens {
     this._timeLocal = new Date().getTime()
   }
 
-  get authenticated () {
+  get authenticated() {
     return this._authenticated
   }
 
   /**
    * load tokens from localStorage
    */
-  loadTokens () {
+  loadTokens() {
     const tokens = this._store.get()
     if (tokens) this.setTokens(tokens)
     return this
   }
 
-  fromInitOptions ({ token = undefined, refreshToken = undefined, idToken = undefined } = {}) {
+  fromInitOptions({
+    token = undefined,
+    refreshToken = undefined,
+    idToken = undefined
+  } = {}) {
     const ls = this._store.get() || {}
     // @ts-ignore
     token = token || ls.access_token
@@ -59,11 +65,11 @@ export class Tokens {
     return this
   }
 
-  startTokenRequest () {
+  startTokenRequest() {
     this._timeLocal = new Date().getTime()
   }
 
-  setTokens (tokenResponse = {}) {
+  setTokens(tokenResponse = {}) {
     const {
       access_token: token,
       refresh_token: refreshToken,
@@ -78,7 +84,7 @@ export class Tokens {
       this._store.refreshToken(refreshToken)
       try {
         this.refreshTokenParsed = decodeToken(refreshToken)
-      } catch (e) {
+      } catch (_err) {
         // token may be a oauth2 only token
         delete this.refreshTokenParsed
       }
@@ -107,19 +113,13 @@ export class Tokens {
       this._store.token(token)
       try {
         this.tokenParsed = decodeToken(token)
-      } catch (e) {
+      } catch (_err) {
         // token may be a oauth2 only token
         delete this.tokenParsed
       }
       this.log.info('token set %o', this.tokenParsed)
-      const iat = toNumber(
-        claim(this, 'iat'),
-        now() - 1
-      )
-      this._expiresAt = toNumber(
-        claim(this, 'exp'),
-        now() + expiresIn
-      )
+      const iat = toNumber(claim(this, 'iat'), now() - 1)
+      this._expiresAt = toNumber(claim(this, 'exp'), now() + expiresIn)
       this._timeSkew = Math.floor(this._timeLocal / 1000) - iat
       this.log.info('Estimated time difference is %s seconds', this._timeSkew)
       this._expiresAt += this._timeSkew
@@ -135,15 +135,15 @@ export class Tokens {
     }
   }
 
-  getTokens () {
+  getTokens() {
     return new TokenClaims(this)
   }
 
-  clearTokens () {
+  clearTokens() {
     this.setTokens()
   }
 
-  sessionState () {
+  sessionState() {
     return claim(this, SESSION_STATE, '')
   }
 
@@ -151,11 +151,11 @@ export class Tokens {
    * expiry in seconds
    * @return {number}
    */
-  expiresIn () {
+  expiresIn() {
     return this._expiresAt - now()
   }
 
-  isTokenExpired (minValidity = this._minValidity) {
+  isTokenExpired(minValidity = this._minValidity) {
     let expiresIn = this.expiresIn()
     if (!isNaN(minValidity)) {
       expiresIn -= minValidity
@@ -170,16 +170,14 @@ export class Tokens {
    * @param {string} storedNonce
    * @return {boolean} true if storedNonce is different than nonce in tokens
    */
-  isInvalidNonce (storedNonce) {
-    const {
-      _useNonce,
-      tokenParsed,
-      refreshTokenParsed,
-      idTokenParsed
-    } = this
-    const verify = obj => obj && obj.nonce && obj.nonce !== storedNonce
-    const invalid = _useNonce &&
-      (verify(tokenParsed) || verify(refreshTokenParsed) || verify(idTokenParsed))
+  isInvalidNonce(storedNonce) {
+    const { _useNonce, tokenParsed, refreshTokenParsed, idTokenParsed } = this
+    const verify = (obj) => obj && obj.nonce && obj.nonce !== storedNonce
+    const invalid =
+      _useNonce &&
+      (verify(tokenParsed) ||
+        verify(refreshTokenParsed) ||
+        verify(idTokenParsed))
     if (invalid) {
       this.clearTokens()
     }
@@ -194,33 +192,31 @@ const idTokenName = _getName('id-token')
 const refreshTokenName = _getName('refresh-token')
 
 class Store {
-  constructor (type, clientId) {
+  constructor(type, clientId) {
     if (!type || type === NONE) return
     this.clientId = clientId
     this.store = storage(type, S_MEMORY)
   }
 
-  _set (key, token) {
+  _set(key, token) {
     if (!this.store) return
-    token
-      ? this.store.setItem(key, token)
-      : this.store.removeItem(key)
+    token ? this.store.setItem(key, token) : this.store.removeItem(key)
   }
 
-  token (token, expiresAt) {
+  token(token, expiresAt) {
     this._set(tokenName(this.clientId), token)
     this._set(tokenExpiresAtName(this.clientId), expiresAt)
   }
 
-  refreshToken (token) {
+  refreshToken(token) {
     this._set(refreshTokenName(this.clientId), token)
   }
 
-  idToken (token) {
+  idToken(token) {
     this._set(idTokenName(this.clientId), token)
   }
 
-  get () {
+  get() {
     if (!this.store) return
     return {
       access_token: this.store.getItem(tokenName(this.clientId)),
@@ -232,7 +228,7 @@ class Store {
 }
 
 export class TokenClaims {
-  constructor (tokens) {
+  constructor(tokens) {
     this.token = this.idToken = this.refreshToken = undefined
     ;['token', 'idToken', 'refreshToken'].forEach((key) => {
       const parsed = key + 'Parsed'
@@ -241,7 +237,7 @@ export class TokenClaims {
     })
   }
 
-  claim (claimName) {
+  claim(claimName) {
     return claim(this, claimName)
   }
 }

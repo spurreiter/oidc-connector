@@ -12,7 +12,9 @@ export const OidcConnector = ({ options, children }) => {
   const [error, _setError] = useState(null)
   const client = useMemo(() => {
     const client = new OidcClient(options)
-    client.init().catch(err => { setError(err) })
+    client.init().catch((err) => {
+      setError(err)
+    })
     return client
   }, [options])
 
@@ -51,7 +53,14 @@ export const OidcConnector = ({ options, children }) => {
     return client.logout()
   })
 
-  const value = { isLoading, isAuthenticated, error, handleLogin, handleLogout, client }
+  const value = {
+    isLoading,
+    isAuthenticated,
+    error,
+    handleLogin,
+    handleLogout,
+    client
+  }
 
   return h(OidcContext.Provider, { value }, children)
 }

@@ -13,7 +13,5 @@ export const Token = () => {
   })
 
   const tokenParsed = client.getParsedToken()
-  return tokenParsed
-    ? <pre>{JSON.stringify(tokenParsed, null, 2)}</pre>
-    : null
+  return tokenParsed ? <pre>{JSON.stringify(tokenParsed, null, 2)}</pre> : null
 }

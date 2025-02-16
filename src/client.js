@@ -31,11 +31,7 @@ import {
   urlEncoded
 } from './utils/index.js'
 
-import {
-  IMPLICIT,
-  STANDARD,
-  TYPE_URLENCODED
-} from './constants.js'
+import { IMPLICIT, STANDARD, TYPE_URLENCODED } from './constants.js'
 
 /** @typedef {import('./client').Options} Options */
 /** @typedef {import('./types').OidcError} OidcError */
@@ -44,7 +40,7 @@ export class Client extends EventEmitter {
   /**
    * @param {Options} [options]
    */
-  constructor (options = { url: '', clientId: '' }) {
+  constructor(options = { url: '', clientId: '' }) {
     super()
     this.options = initOptions(options)
     this.adapter = options.adapter || new Adapter()
@@ -61,14 +57,10 @@ export class Client extends EventEmitter {
     this.isInitialized = false
   }
 
-  async init () {
+  async init() {
     try {
       const { log } = this.options
-      const {
-        serverUrl,
-        clientId,
-        oidcConfig
-      } = await loadConfig(this.options)
+      const { serverUrl, clientId, oidcConfig } = await loadConfig(this.options)
       this.options.clientId = clientId
       this.endpoints = endpoints(serverUrl, oidcConfig, this.callback)
       this.adapter.initialize(this)
@@ -85,7 +77,7 @@ export class Client extends EventEmitter {
     }
   }
 
-  async _processInit () {
+  async _processInit() {
     const oauth = this.callback.parse(window.location.href)
     if (oauth) {
       window.history.replaceState(window.history.state, '', oauth.newUrl)
@@ -107,19 +99,22 @@ export class Client extends EventEmitter {
     }
   }
 
-  async _processWithTokens () {
+  async _processWithTokens() {
     // check if session is still valid
     // throws if invalid otherwise starts timer
     await this.statusIframe.schedule()
 
     // force refresh if status iframe is disabled
-    const _minValidity = !this.statusIframe.enabled ? -1 : this.options.minValidity
+    const _minValidity = !this.statusIframe.enabled
+      ? -1
+      : this.options.minValidity
 
-    return this._refresh(_minValidity)
-      .then(tokens => tokens || this.tokens.getTokens()) // tokens may not be present if not yet expired
+    return this._refresh(_minValidity).then(
+      (tokens) => tokens || this.tokens.getTokens()
+    ) // tokens may not be present if not yet expired
   }
 
-  async _processCallback (oauth) {
+  async _processCallback(oauth) {
     const { flow, clientId, scope, scopeInTokenRequest } = this.options
     const { code, error } = oauth
 
@@ -136,12 +131,12 @@ export class Client extends EventEmitter {
     }
 
     // if IMPLICIT or HYBRID flow contain an access token
-    if ((flow !== STANDARD) && oauth.access_token && !oauth.code) {
+    if (flow !== STANDARD && oauth.access_token && !oauth.code) {
       return this._authSuccess(oauth, oauth)
     }
 
     // if STANDARD or HYBRID flow contain a code
-    if ((flow !== IMPLICIT) && code) {
+    if (flow !== IMPLICIT && code) {
       const query = {
         code,
         grant_type: 'authorization_code',
@@ -173,7 +168,7 @@ export class Client extends EventEmitter {
     }
   }
 
-  async _authSuccess (tokenResponse, oauth) {
+  async _authSuccess(tokenResponse, oauth) {
     this.tokens.setTokens(tokenResponse)
 
     if (this.tokens.isInvalidNonce(oauth.storedNonce)) {
@@ -183,7 +178,7 @@ export class Client extends EventEmitter {
     await this.statusIframe.schedule()
   }
 
-  async _refresh (minValidity = this.options.minValidity) {
+  async _refresh(minValidity = this.options.minValidity) {
     const promise = createPromise()
     const { log, clientId } = this.options
     const { tokens } = this
@@ -239,17 +234,21 @@ export class Client extends EventEmitter {
     return promise
   }
 
-  _schedule () {
+  _schedule() {
     const { expiryInterval = 0 } = this.options
-    if (expiryInterval > 0 && !this._expiryTimerId && this.tokens.refreshToken) {
+    if (
+      expiryInterval > 0 &&
+      !this._expiryTimerId &&
+      this.tokens.refreshToken
+    ) {
       this._expiryTimerId = setTimeout(async () => {
         this._refresh()
-          .then(tokens => {
+          .then((tokens) => {
             if (tokens) this.emit('token', tokens)
             this._expiryTimerId = null
             this._schedule()
           })
-          .catch(err => {
+          .catch((err) => {
             this._expiryTimerId = null
             this._handleLogout()
             this._handleError(err)
@@ -258,39 +257,39 @@ export class Client extends EventEmitter {
     }
   }
 
-  _handleToken () {
+  _handleToken() {
     const tokens = this.tokens.getTokens()
     this.emit('token', tokens)
     return tokens
   }
 
-  _handleError (err) {
+  _handleError(err) {
     const { log } = this.options
     log.error(err.message)
     this.emit('error', err)
   }
 
-  _handleLogout () {
+  _handleLogout() {
     const { forceLogout } = this.options
     this.emit('logout')
     if (forceLogout) {
-      this.logout().catch(err => this._handleError(err))
+      this.logout().catch((err) => this._handleError(err))
     } else {
       this.tokens.clearTokens()
     }
   }
 
-  getTokens () {
+  getTokens() {
     return this.tokens.getTokens()
   }
 
-  getParsedToken () {
+  getParsedToken() {
     const tokens = this.getTokens() || {}
     // @ts-expect-error
     return tokens.tokenParsed || tokens.idTokenParsed
   }
 
-  async accessToken () {
+  async accessToken() {
     const { token, refreshToken } = this.tokens
     const isExpired = this.tokens.isTokenExpired()
     if ((!token || isExpired) && refreshToken) {
@@ -307,7 +306,7 @@ export class Client extends EventEmitter {
    * 'none' then login will not prompt for credentials.
    * @return {Promise}
    */
-  async login (opts = {}) {
+  async login(opts = {}) {
     if (!this.isInitialized) {
       await this.init()
     }
@@ -322,7 +321,7 @@ export class Client extends EventEmitter {
    * For `{prompt: 'login'}` user is prompted for credentials.
    * @return {Promise}
    */
-  async silentLogin (opts = {}) {
+  async silentLogin(opts = {}) {
     if (!this.options.silentLoginRedirectUri) {
       if (!this.isInitialized) {
         await this.init()
@@ -351,7 +350,7 @@ export class Client extends EventEmitter {
    * No token revocation will be made.
    * @return {Promise}
    */
-  async logout () {
+  async logout() {
     if (!this.isInitialized) {
       await this.init()
     }
@@ -362,7 +361,7 @@ export class Client extends EventEmitter {
     return this.adapter.logout({ idToken })
   }
 
-  async userinfo () {
+  async userinfo() {
     // @ts-ignore
     const url = this.endpoints.userinfo()
     const token = await this.accessToken()
@@ -383,17 +382,24 @@ export class Client extends EventEmitter {
     return Promise.reject(err)
   }
 
-  async register () {
+  async register() {
     return this.adapter.register()
   }
 
-  async account () {
+  async account() {
     return this.adapter.account()
   }
 }
 
-async function fetchToken (url, query, { clientId = '', clientSecret = '', clientSecretPost = '' } = {}) {
-  const headers = { 'Content-Type': TYPE_URLENCODED, Accept: 'application/json' }
+async function fetchToken(
+  url,
+  query,
+  { clientId = '', clientSecret = '', clientSecretPost = '' } = {}
+) {
+  const headers = {
+    'Content-Type': TYPE_URLENCODED,
+    Accept: 'application/json'
+  }
   if (clientSecret) {
     if (clientSecretPost) {
       query.clientSecret = clientSecret
