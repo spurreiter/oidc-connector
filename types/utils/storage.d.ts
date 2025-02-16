@@ -4,7 +4,7 @@
  * @param {string} [fallbackType] 'cookie|local|session|memory'
  * @returns {Storage|MemoryStorage|CookieStorage}
  */
-export function storage(type?: string | undefined, fallbackType?: string | undefined): Storage | MemoryStorage | CookieStorage;
+export function storage(type?: string, fallbackType?: string): Storage | MemoryStorage | CookieStorage;
 export class MemoryStorage {
     items: {};
     keys(): {};
@@ -38,7 +38,7 @@ export class CallbackStorage {
      * Obtain token storage. Fallback is type='cookie'
      * @param {string} [type='local'] - 'local|session|cookie|memory'
      */
-    constructor(type?: string | undefined);
+    constructor(type?: string);
     _callback: string;
     _store: Storage | MemoryStorage | CookieStorage;
     _clearExpired(): void;
