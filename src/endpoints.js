@@ -157,6 +157,24 @@ export class Endpoints {
     if (!url) throw new Error('no account endpoint')
     return url
   }
+
+  /**
+   * @see https://www.rfc-editor.org/rfc/rfc9207.html
+   * @param {string} iss
+   * @return {boolean}
+   */
+  verifyIssuer(iss) {
+    const {
+      authorization_response_iss_parameter_supported: issParamSupported,
+      issuer
+    } = this.oidcConfig
+
+    if (!issParamSupported) {
+      return true
+    }
+
+    return issuer === iss
+  }
 }
 
 export const endpoints = (serverUrl, oidcConfig, callback) =>

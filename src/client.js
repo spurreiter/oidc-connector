@@ -116,7 +116,7 @@ export class Client extends EventEmitter {
 
   async _processCallback(oauth) {
     const { flow, clientId, scope, scopeInTokenRequest } = this.options
-    const { code, error } = oauth
+    const { code, error, iss } = oauth
 
     // see https://github.com/keycloak/keycloak-community/blob/main/design/application-initiated-actions.md
     if (oauth.kc_action_status) {
@@ -128,6 +128,10 @@ export class Client extends EventEmitter {
       const err = new Error(error)
       err.description = oauth.error_description
       return Promise.reject(err)
+    }
+
+    if (!this.endpoints?.verifyIssuer(iss)) {
+      return Promise.reject(new Error('invalid_issuer'))
     }
 
     // if IMPLICIT or HYBRID flow contain an access token

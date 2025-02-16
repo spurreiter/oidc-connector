@@ -112,6 +112,25 @@ describe('utils/Callback', function () {
       })
     })
 
+    it('response mode fragment with iss', function () {
+      const cb = new Callback({
+        log,
+        flow: STANDARD,
+        responseMode: FRAGMENT
+      })
+      const url =
+        'http://example.org?other=query#response_mode=query&code=mycode&session_state=mysessionstate&state=teststate&other=testother&iss=http%3A%2F%2Flocalhost%3A8000'
+      const r = cb.parse(url)
+      assert.deepStrictEqual(r, {
+        code: 'mycode',
+        iss: 'http://localhost:8000',
+        state: 'teststate',
+        session_state: 'mysessionstate',
+        response_mode: 'query',
+        newUrl: 'http://example.org/?other=query#other=testother'
+      })
+    })
+
     it('response mode fragment with wrong response', function () {
       const cb = new Callback({ log, flow: STANDARD, responseMode: QUERY })
       const url =

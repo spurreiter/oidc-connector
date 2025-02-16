@@ -77,7 +77,7 @@ describe('Client', function () {
       // console.log(params(newUrl))
       assert.deepStrictEqual(
         Object.keys(params(newUrl).hash).sort(),
-        ['code', 'session_state', 'state'],
+        ['code', 'iss', 'session_state', 'state'],
         'shall return code, session_state and state hash params'
       )
 
@@ -111,7 +111,7 @@ describe('Client', function () {
       // console.log(params(newUrl))
       assert.deepStrictEqual(
         Object.keys(params(newUrl).hash).sort(),
-        ['code', 'session_state', 'state'],
+        ['code', 'iss', 'session_state', 'state'],
         'shall return code, session_state and state hash params'
       )
 
@@ -219,6 +219,7 @@ describe('Client', function () {
           'access_token',
           'expires_in',
           'id_token',
+          'iss',
           'scope',
           'session_state',
           'state',
@@ -260,7 +261,7 @@ describe('Client', function () {
       // console.log(params(newUrl))
       assert.deepStrictEqual(
         Object.keys(params(newUrl).hash).sort(),
-        ['code', 'id_token', 'session_state', 'state'],
+        ['code', 'id_token', 'iss', 'session_state', 'state'],
         'shall return hybrid flow hash params'
       )
 

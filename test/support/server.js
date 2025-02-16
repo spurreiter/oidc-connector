@@ -113,8 +113,27 @@ function verifyPkce(method, challenge, verifier) {
 
 // --- server related stuff
 
-// eslint-disable-next-line no-unused-vars
-const getPaths = ({ host, baseUrl, noCheckSession }) => ({
+/**
+ * @typedef {{
+ *  issuer: string
+ *  oidcUri: string
+ *  jwksUri: string
+ *  authorizationEndpoint: string
+ *  tokenEndpoint: string
+ *  userinfoEndpoint: string
+ *  endSessionEndpoint: string
+ *  checkSessionIframe?: string
+ * }} Paths
+ */
+/**
+ * get paths for oidc endpoints
+ * @param {{
+ *  baseUrl: string
+ *  noCheckSession: boolean
+ * }} param0
+ * @returns {Paths}
+ */
+const getPaths = ({ baseUrl, noCheckSession }) => ({
   issuer: baseUrl,
   oidcUri: baseUrl + '/.well-known/openid-configuration',
   jwksUri: baseUrl + '/certs',
@@ -127,13 +146,23 @@ const getPaths = ({ host, baseUrl, noCheckSession }) => ({
     : undefined
 })
 
-const getWellKnownConfig = (paths, { origin = '' }) => {
+/**
+ * @param {Paths} paths
+ * @param {string} origin
+ * @param {Record<string,string|boolean>} [settings]
+ * @returns {Record<string,string|boolean>}
+ */
+const getWellKnownConfig = (paths, origin, wellKnown = {}) => {
   // eslint-disable-next-line no-unused-vars
   const { oidcUri, ...rest } = paths
-  return Object.entries(rest).reduce((o, [key, val]) => {
+  const wk = Object.entries(rest).reduce((o, [key, val]) => {
     o[toSnakeCase(key)] = origin + val
     return o
   }, {})
+  return Object.entries(wellKnown).reduce((o, [key, val]) => {
+    o[toSnakeCase(key)] = val
+    return o
+  }, wk)
 }
 
 const originF =
@@ -302,11 +331,13 @@ export function setup({
     res.end()
   })
 
+  const wellKnown = {
+    authorizationResponseIssParameterSupported: true
+  }
+
   app.get(paths.oidcUri, (req, res) => {
-    const oidcConfig = getWellKnownConfig(paths, {
-      origin: getOrigin(req.headers),
-      noCheckSession
-    })
+    const origin = getOrigin(req.headers)
+    const oidcConfig = getWellKnownConfig(paths, origin, wellKnown)
     res.type('json').json(oidcConfig)
   })
 
@@ -372,6 +403,9 @@ export function setup({
     if (responseType.includes('id_token')) {
       params.id_token = id_token
       isValidResponseType = true
+    }
+    if (wellKnown.authorizationResponseIssParameterSupported) {
+      params.iss = issuer
     }
 
     if (isValidResponseType) {

@@ -10,6 +10,7 @@ import {
   HYBRID,
   // params
   CODE,
+  ISSUER,
   STATE,
   SESSION_STATE,
   RESPONSE_MODE,
@@ -30,6 +31,7 @@ const PARAMS = [
   ACCESS_TOKEN,
   TOKEN_TYPE,
   ID_TOKEN,
+  ISSUER,
   STATE,
   SESSION_STATE,
   EXPIRES_IN,

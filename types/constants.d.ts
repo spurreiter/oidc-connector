@@ -18,6 +18,7 @@ export const TOKEN_TYPE: "token_type";
 export const ERROR: "error";
 export const ERROR_DESCRIPTION: "error_description";
 export const ERROR_URI: "error_uri";
+export const ISSUER: "iss";
 export const NONE: "none";
 export const LOGIN: "login";
 export const CHANGED: "changed";
