@@ -29,10 +29,7 @@ describe('utils/urls', function () {
 
   describe('absoluteUrl', function () {
     it('shall add origin', function () {
-      assert.strictEqual(
-        absoluteUrl('/foo/bar'),
-        'https://example.org/foo/bar'
-      )
+      assert.strictEqual(absoluteUrl('/foo/bar'), 'https://example.org/foo/bar')
     })
 
     it('shall use url', function () {

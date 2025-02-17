@@ -1,27 +1,27 @@
 import request from 'superagent'
 
 class MockStatusCreateIframe {
-  constructor (opts) {
+  constructor(opts) {
     this._opts = opts
     this.pos = -1
     this.count = 0
   }
 
-  async create (origin, onLoad, nextOrigin) {
+  async create(origin, onLoad, nextOrigin) {
     if (onLoad) {
       this.origin = nextOrigin || origin
       onLoad()
     }
   }
 
-  addListener (handleMessage) {
+  addListener(handleMessage) {
     this._handleMsg = (ev) => {
       this.count++
       handleMessage(ev)
     }
   }
 
-  postMessage (msg) {
+  postMessage(msg) {
     setTimeout(() => {
       const { status } = this._opts
       this.pos = Math.min(this.pos + 1, status.length - 1)
@@ -33,43 +33,45 @@ class MockStatusCreateIframe {
     })
   }
 
-  removeListener () {
-  }
+  removeListener() {}
 }
-export const mockStatusCreateIframe = opts => new MockStatusCreateIframe(opts)
+export const mockStatusCreateIframe = (opts) => new MockStatusCreateIframe(opts)
 
 class MockSilentLoginCreateIframe {
-  constructor (opts) {
+  constructor(opts) {
     this._opts = opts
   }
 
-  async create (origin) {
+  async create(origin) {
     const { error, src } = this._opts
     if (error) {
       this._ev = { data: `${origin}#error=${error}&state='000-000-000'` }
       return
     }
-    return await request.get(src)
+    return await request
+      .get(src)
       .redirects(0)
-      .catch(err => {
+      .catch((err) => {
         const res = err.response
         this._ev = { data: res.headers.location }
       })
   }
 
-  load (url) {
+  // eslint-disable-next-line no-unused-vars
+  load(_url) {
     throw new Error('not used')
   }
 
-  addListener (handleMessage) {
+  addListener(handleMessage) {
     handleMessage(this._ev)
   }
 
-  postMessage (msg) {
+  // eslint-disable-next-line no-unused-vars
+  postMessage(_msg) {
     throw new Error('not used')
   }
 
-  removeListener () {
-  }
+  removeListener() {}
 }
-export const mockSilentLoginCreateIframe = opts => new MockSilentLoginCreateIframe(opts)
+export const mockSilentLoginCreateIframe = (opts) =>
+  new MockSilentLoginCreateIframe(opts)

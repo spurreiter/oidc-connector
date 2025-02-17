@@ -27,6 +27,8 @@ export const TOKEN_TYPE = 'token_type'
 export const ERROR = 'error'
 export const ERROR_DESCRIPTION = 'error_description'
 export const ERROR_URI = 'error_uri'
+// https://www.rfc-editor.org/rfc/rfc9207.html
+export const ISSUER = 'iss'
 
 // prompt
 export const NONE = 'none'

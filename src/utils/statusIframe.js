@@ -1,16 +1,12 @@
 import { createPromise, debouncePromises } from './createPromise.js'
 import { createIframe } from './createIframe.js'
-import {
-  CHANGED,
-  UNCHANGED,
-  ERROR
-} from '../constants.js'
+import { CHANGED, UNCHANGED, ERROR } from '../constants.js'
 
 const TITLE = 'oidc-status-iframe'
 
 // https://openid.net/specs/openid-connect-session-1_0.html
 export class StatusIframe {
-  constructor (client) {
+  constructor(client) {
     const { useStatusIframe, statusIframeInterval, log } = client.options
     this.client = client
     this.iframe = null
@@ -22,11 +18,11 @@ export class StatusIframe {
     this.mock = undefined
   }
 
-  disable () {
+  disable() {
     this.enabled = false
   }
 
-  async setup () {
+  async setup() {
     const promise = createPromise()
 
     if (this.iframe || !this.enabled) {
@@ -43,9 +39,10 @@ export class StatusIframe {
     }
 
     const url = this.client.endpoints.authorize()
-    const nextOrigin = (url.charAt(0) === '/')
-      ? window.location.origin
-      : url.substring(0, url.indexOf('/', 8))
+    const nextOrigin =
+      url.charAt(0) === '/'
+        ? window.location.origin
+        : url.substring(0, url.indexOf('/', 8))
 
     this.iframe = (this.mock || createIframe)({ src, title: TITLE })
     await this.iframe.create(null, () => promise.resolve(), nextOrigin)
@@ -68,7 +65,7 @@ export class StatusIframe {
     return promise
   }
 
-  async check () {
+  async check() {
     const promise = createPromise()
 
     const { enabled, iframe } = this
@@ -95,7 +92,7 @@ export class StatusIframe {
     return promise
   }
 
-  _schedule () {
+  _schedule() {
     if (this.enabled && !this.timerId) {
       this.timerId = setTimeout(async () => {
         this.timerId = null
@@ -105,14 +102,16 @@ export class StatusIframe {
             this._schedule()
             return
           }
-        } catch (e) {}
+        } catch (_err) {
+          // noop
+        }
         // start logout if ERROR or CHANGED
         this.client._handleLogout()
       }, this.interval)
     }
   }
 
-  async schedule () {
+  async schedule() {
     const needsFirstCheck = !this.iframe
 
     await this.setup()
@@ -137,7 +136,7 @@ export class StatusIframe {
     }
   }
 
-  clearSchedule () {
+  clearSchedule() {
     clearTimeout(this.timerId)
     this.timerId = null
   }

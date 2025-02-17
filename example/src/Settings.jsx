@@ -47,13 +47,7 @@ const formMeta = {
   scopeInTokenRequest: { type: 'checkbox' },
   useNonce: { type: 'checkbox' },
   storage: {
-    options: [
-      'session',
-      'local',
-      'cookie',
-      'memory',
-      'none'
-    ]
+    options: ['session', 'local', 'cookie', 'memory', 'none']
   },
   minValidity: { type: 'text' },
   expiryInterval: { type: 'text' },
@@ -82,12 +76,12 @@ const formMeta = {
   oidcConfig: { type: 'text' }
 }
 
-export const getInitialSettings = () => Object.assign({},
-  DEFAULT_OPTIONS, loadSettings())
+export const getInitialSettings = () =>
+  Object.assign({}, DEFAULT_OPTIONS, loadSettings())
 
-const loadSettings = () =>
-  JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}')
+const loadSettings = () => JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}')
 
+// eslint-disable-next-line no-unused-vars
 const storeSettings = ({ log, ...opts }) =>
   localStorage.setItem(STORAGE_KEY, JSON.stringify(opts))
 
@@ -103,7 +97,7 @@ const Input = ({ name, value }) => (
 const Checkbox = ({ name, value }) => (
   <div>
     <label htmlFor={name}>{name}:</label>
-    <input type="checkbox" name={name} checked={!!value}/>
+    <input type="checkbox" name={name} checked={!!value} />
   </div>
 )
 
@@ -111,9 +105,9 @@ const Select = ({ name, value, options }) => (
   <div>
     <label htmlFor={name}>{name}:</label>
     <select name={name} value={value}>
-      {options.map(
-        (option, key) => h('option', { key, value: option }, option))
-      }
+      {options.map((option, key) =>
+        h('option', { key, value: option }, option)
+      )}
     </select>
   </div>
 )
@@ -136,56 +130,65 @@ export const Settings = ({ handleSave }) => {
   const onSave = (ev) => {
     ev.preventDefault()
     const formObj = Object.fromEntries(new FormData(formId))
-    const opts = Object.keys(DEFAULT_OPTIONS).reduce((o, key) => {
-      const value = formObj[key]
-      const type = formMeta[key]?.type
-      if (type === 'checkbox') {
-        o[key] = (value === 'on' || value === true)
-      } else if (stringifyProps.includes(key)) {
-        try {
-          o[key] = JSON.parse(value)
-        } catch (e) {
-          console.error(value)
-          console.error(e)
+    const opts = Object.keys(DEFAULT_OPTIONS).reduce(
+      (o, key) => {
+        const value = formObj[key]
+        const type = formMeta[key]?.type
+        if (type === 'checkbox') {
+          o[key] = value === 'on' || value === true
+        } else if (stringifyProps.includes(key)) {
+          try {
+            o[key] = JSON.parse(value)
+          } catch (e) {
+            console.error(value)
+            console.error(e)
+          }
+        } else {
+          o[key] = value === '' ? undefined : value
         }
-      } else {
-        o[key] = value === '' ? undefined : value
-      }
-      return o
-    }, { ...DEFAULT_OPTIONS })
+        return o
+      },
+      { ...DEFAULT_OPTIONS }
+    )
 
     storeSettings(opts)
     setOptions(opts)
     handleSave && handleSave(opts)
   }
 
-  stringifyProps.forEach(prop => {
+  stringifyProps.forEach((prop) => {
     if (typeof options[prop] === 'object') {
       options[prop] = JSON.stringify(options[prop])
     }
   })
 
-  const formData = Object.entries(formMeta)
-    .map(([name, meta]) => {
-      const key = name
-      const value = options[name]
-      if (meta.options) {
-        return h(Select, { key, name, value, options: meta.options })
-      } else if (meta.type === 'checkbox') {
-        return h(Checkbox, { key, name, value })
-      } else {
-        return h(Input, { key, name, value })
-      }
-    })
+  const formData = Object.entries(formMeta).map(([name, meta]) => {
+    const key = name
+    const value = options[name]
+    if (meta.options) {
+      return h(Select, { key, name, value, options: meta.options })
+    } else if (meta.type === 'checkbox') {
+      return h(Checkbox, { key, name, value })
+    } else {
+      return h(Input, { key, name, value })
+    }
+  })
 
   return (
-    <section className={style.settings} >
-      <form ref={(ref) => { formId = ref }} onSubmit={onSave}>
-      {formData}
-      <div>
-        <button type="submit" onClick={onSave}>save</button>
-        <button onClick={onReset}>reset</button>
-      </div>
+    <section className={style.settings}>
+      <form
+        ref={(ref) => {
+          formId = ref
+        }}
+        onSubmit={onSave}
+      >
+        {formData}
+        <div>
+          <button type="submit" onClick={onSave}>
+            save
+          </button>
+          <button onClick={onReset}>reset</button>
+        </div>
       </form>
     </section>
   )

@@ -1,46 +1,49 @@
 import { createPromise } from '../utils/createPromise.js'
 
-function openUrl (url, options, target = '_blank') {
+function openUrl(url, options, target = '_blank') {
   // Use inappbrowser for IOS and Android if available
   const hasInAppBrowser = window.cordova && window.cordova.InAppBrowser
-  const open = hasInAppBrowser
-    ? window.cordova.InAppBrowser.open
-    : window.open
+  const open = hasInAppBrowser ? window.cordova.InAppBrowser.open : window.open
   return open(url, target, options)
 }
 
-function createCordovaOptions (opts = {}) {
+function createCordovaOptions(opts = {}) {
   const cordovaOptions = { hidden: 'yes', ...opts }
   cordovaOptions.location = 'no'
-  const formatted = Object.entries(cordovaOptions).map(a => a.join('=')).join(',')
+  const formatted = Object.entries(cordovaOptions)
+    .map((a) => a.join('='))
+    .join(',')
   return formatted
 }
 
 export class AdapterCordova {
-  constructor (opts) {
+  constructor(opts) {
     this.cordovaOpts = createCordovaOptions(opts)
   }
 
-  initialize (client) {
+  initialize(client) {
     client.statusIframe.disable()
     this.client = client
     this.options = client.options
     this.endpoints = client.endpoints
   }
 
-  _isInitialized () {
+  _isInitialized() {
     if (!this.options) throw new Error('adapter not initialized')
   }
 
-  redirectUri () {
+  redirectUri() {
     return 'http://localhost'
   }
 
-  async login (opts) {
+  async login(opts) {
     this._isInitialized()
     const promise = createPromise()
     const { client } = this
-    const url = await this.endpoints.createLoginUrl({ ...this.options, ...opts })
+    const url = await this.endpoints.createLoginUrl({
+      ...this.options,
+      ...opts
+    })
     const ref = openUrl(url, this.cordovaOpts)
     let completed = false
 
@@ -53,9 +56,10 @@ export class AdapterCordova {
     const loadStart = (ev) => {
       if (ev.url.indexOf('http://localhost') === 0) {
         const oauth = client.callback.parse(ev.url)
-        client._processCallback(oauth)
-          .then(res => promise.resolve(res))
-          .catch(err => promise.reject(err))
+        client
+          ._processCallback(oauth)
+          .then((res) => promise.resolve(res))
+          .catch((err) => promise.reject(err))
         closeBrowser()
         completed = true
         return true
@@ -82,7 +86,7 @@ export class AdapterCordova {
     return promise
   }
 
-  async register () {
+  async register() {
     this._isInitialized()
     const promise = createPromise()
     const { client } = this
@@ -93,16 +97,17 @@ export class AdapterCordova {
       if (ev.url.indexOf('http://localhost') === 0) {
         ref.close()
         const oauth = client.callback.parse(ev.url)
-        client._processCallback(oauth)
-          .then(res => promise.resolve(res))
-          .catch(err => promise.reject(err))
+        client
+          ._processCallback(oauth)
+          .then((res) => promise.resolve(res))
+          .catch((err) => promise.reject(err))
       }
     })
 
     return promise
   }
 
-  async logout ({ idToken }) {
+  async logout({ idToken }) {
     this._isInitialized()
     const promise = createPromise()
     const url = await this.endpoints.createLogoutUrl(this.options, { idToken })
@@ -140,7 +145,7 @@ export class AdapterCordova {
     return promise
   }
 
-  async account () {
+  async account() {
     this._isInitialized()
     const url = await this.endpoints.createAccountUrl(this.options)
     if (typeof url !== 'undefined') {

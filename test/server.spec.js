@@ -23,11 +23,11 @@ describe('test/support/server', function () {
       log(res.body)
       assert.strictEqual(
         res.body.authorization_endpoint,
-      `http://localhost:${port}/oidc/auth`
+        `http://localhost:${port}/oidc/auth`
       )
       assert.strictEqual(
         res.body.token_endpoint,
-      `http://localhost:${port}/oidc/token`
+        `http://localhost:${port}/oidc/token`
       )
     })
 
@@ -44,12 +44,13 @@ describe('test/support/server', function () {
 
   describe('authorization_endpoint + token_endpoint', function () {
     it('shall request authorization code', async function () {
-      const url = '/oidc/auth?response_type=code&client_id=test&redirect_uri=http%3A%2F%2Flocalhost%3A8000%2Flogin&state=1234'
-      const res = await request(this.app).get(url)
-        .redirects(0)
-        .expect(302)
+      const url =
+        '/oidc/auth?response_type=code&client_id=test&redirect_uri=http%3A%2F%2Flocalhost%3A8000%2Flogin&state=1234'
+      const res = await request(this.app).get(url).redirects(0).expect(302)
       log(res.headers)
-      assert.ok(/SESSION_STATE=test%2F.*; Path=\//.test(res.headers['set-cookie'][0]))
+      assert.ok(
+        /SESSION_STATE=test%2F.*; Path=\//.test(res.headers['set-cookie'][0])
+      )
       const u = new URL(res.headers.location)
       log(u)
       assert.strictEqual(u.origin, 'http://localhost:8000')
@@ -58,12 +59,13 @@ describe('test/support/server', function () {
     })
 
     it('shall request authorization code as fragment', async function () {
-      const url = '/oidc/auth?response_type=code&response_mode=fragment&client_id=test&redirect_uri=http%3A%2F%2Flocalhost%3A8000%2Flogin&state=1234'
-      const res = await request(this.app).get(url)
-        .redirects(0)
-        .expect(302)
+      const url =
+        '/oidc/auth?response_type=code&response_mode=fragment&client_id=test&redirect_uri=http%3A%2F%2Flocalhost%3A8000%2Flogin&state=1234'
+      const res = await request(this.app).get(url).redirects(0).expect(302)
       log(res.headers)
-      assert.ok(/SESSION_STATE=test%2F.*; Path=\//.test(res.headers['set-cookie'][0]))
+      assert.ok(
+        /SESSION_STATE=test%2F.*; Path=\//.test(res.headers['set-cookie'][0])
+      )
       const u = new URL(res.headers.location)
       log(u)
       assert.strictEqual(u.origin, 'http://localhost:8000')
@@ -72,12 +74,13 @@ describe('test/support/server', function () {
     })
 
     it('shall request implicit flow', async function () {
-      const url = '/oidc/auth?response_type=token+code+id_token&response_mode=query&client_id=test&redirect_uri=http%3A%2F%2Flocalhost%3A8000%2Flogin&state=1234'
-      const res = await request(this.app).get(url)
-        .redirects(0)
-        .expect(302)
+      const url =
+        '/oidc/auth?response_type=token+code+id_token&response_mode=query&client_id=test&redirect_uri=http%3A%2F%2Flocalhost%3A8000%2Flogin&state=1234'
+      const res = await request(this.app).get(url).redirects(0).expect(302)
       log(res.headers)
-      assert.ok(/SESSION_STATE=test%2F.*; Path=\//.test(res.headers['set-cookie'][0]))
+      assert.ok(
+        /SESSION_STATE=test%2F.*; Path=\//.test(res.headers['set-cookie'][0])
+      )
       const u = new URL(res.headers.location)
       log(u)
       assert.strictEqual(u.origin, 'http://localhost:8000')
@@ -87,21 +90,27 @@ describe('test/support/server', function () {
     })
 
     it('shall return error on unknown response_type', async function () {
-      const url = '/oidc/auth?response_type=unknown&client_id=test&redirect_uri=http%3A%2F%2Flocalhost%3A8000%2Flogin&state=1234'
-      const res = await request(this.app).get(url)
-        .redirects(0)
-        .expect(302)
+      const url =
+        '/oidc/auth?response_type=unknown&client_id=test&redirect_uri=http%3A%2F%2Flocalhost%3A8000%2Flogin&state=1234'
+      const res = await request(this.app).get(url).redirects(0).expect(302)
       log(res.headers)
-      assert.strictEqual(res.headers['set-cookie'][0], 'SESSION_STATE=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT')
+      assert.strictEqual(
+        res.headers['set-cookie'][0],
+        'SESSION_STATE=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT'
+      )
       const u = new URL(res.headers.location)
       log(u)
       assert.strictEqual(u.origin, 'http://localhost:8000')
-      assert.strictEqual(u.searchParams.get('error'), 'unsupported_response_type')
+      assert.strictEqual(
+        u.searchParams.get('error'),
+        'unsupported_response_type'
+      )
     })
 
     it('shall get tokens', async function () {
       const url = '/oidc/token'
-      const res = await request(this.app).post(url)
+      const res = await request(this.app)
+        .post(url)
         .send({
           grant_type: 'authorization_code',
           code: cache.code,
@@ -119,7 +128,8 @@ describe('test/support/server', function () {
 
     it('shall return error on unknown grant_type', async function () {
       const url = '/oidc/token'
-      const res = await request(this.app).post(url)
+      const res = await request(this.app)
+        .post(url)
         .send({
           grant_type: 'unknown',
           code: cache.code,
@@ -140,7 +150,10 @@ describe('test/support/server', function () {
         .get(url)
         .set({ Authorization: 'Bearer ' + cache.token })
       log(res.body)
-      assert.deepStrictEqual(res.body, { name: 'Alice', email: 'alice@wonder.land' })
+      assert.deepStrictEqual(res.body, {
+        name: 'Alice',
+        email: 'alice@wonder.land'
+      })
     })
   })
 })

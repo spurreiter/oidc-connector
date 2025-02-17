@@ -1,6 +1,6 @@
-const hasProto = proto => /^https?:/.test(proto)
+const hasProto = (proto) => /^https?:/.test(proto)
 
-export function absoluteUrl (url, origin) {
+export function absoluteUrl(url, origin) {
   if (hasProto(url)) {
     return url
   } else {
@@ -10,15 +10,13 @@ export function absoluteUrl (url, origin) {
   }
 }
 
-export function clearUrl (url) {
+export function clearUrl(url) {
   const parts = url.split('/').filter(Boolean)
   const proto = parts.shift()
-  return (hasProto(proto)
-    ? `${proto}//`
-    : `/${proto}/`) + parts.join('/')
+  return (hasProto(proto) ? `${proto}//` : `/${proto}/`) + parts.join('/')
 }
 
-export function createUrl (url, query) {
+export function createUrl(url, query) {
   const u = new URL(url)
   if (query) {
     u.search = urlEncoded(query)
@@ -26,7 +24,7 @@ export function createUrl (url, query) {
   return u.toString()
 }
 
-export function urlEncoded (query) {
+export function urlEncoded(query) {
   return new URLSearchParams(
     Object.entries(JSON.parse(JSON.stringify(query)))
   ).toString()

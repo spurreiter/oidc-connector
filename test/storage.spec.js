@@ -1,6 +1,11 @@
 import assert from 'assert'
 import { jsdom } from './support/shims.js'
-import { storage, LocalStorage, CookieStorage, CallbackStorage } from '../src/utils/storage.js'
+import {
+  storage,
+  LocalStorage,
+  CookieStorage,
+  CallbackStorage
+} from '../src/utils/storage.js'
 
 describe('utils/storage', function () {
   before(function () {

@@ -5,12 +5,16 @@ describe('utils/createPromise', function () {
   describe('createPromise', function () {
     it('shall resolve', function (done) {
       const promise = createPromise()
-      promise.then(() => { done() })
+      promise.then(() => {
+        done()
+      })
       promise.resolve()
     })
     it('shall reject', function (done) {
       const promise = createPromise()
-      promise.catch(() => { done() })
+      promise.catch(() => {
+        done()
+      })
       promise.reject()
     })
   })
@@ -22,7 +26,7 @@ describe('utils/createPromise', function () {
 
       for (let i = 0; i < 10; i++) {
         const promise = createPromise()
-        promise.then(r => {
+        promise.then((r) => {
           assert.strictEqual(r, 2)
           if (i === 9) done()
         })
@@ -41,7 +45,7 @@ describe('utils/createPromise', function () {
 
       for (let i = 0; i < 10; i++) {
         const promise = createPromise()
-        promise.catch(err => {
+        promise.catch((err) => {
           assert.strictEqual(err.message, 'error')
           if (i === 9) done()
         })

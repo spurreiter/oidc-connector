@@ -11,7 +11,7 @@ export const createToken = ({
     alg: 'none',
     typ: 'JWT'
   }
-  const now = (Date.now() / 1000 | 0)
+  const now = (Date.now() / 1000) | 0
   const payload = {
     exp: now + skew + exp,
     iat: now + skew,
@@ -22,6 +22,7 @@ export const createToken = ({
     typ,
     ...other
   }
-  const base64 = (obj) => btoa(unescape(encodeURIComponent(JSON.stringify(obj))))
+  const base64 = (obj) =>
+    btoa(unescape(encodeURIComponent(JSON.stringify(obj))))
   return [header, payload, {}].map(base64).join('.')
 }

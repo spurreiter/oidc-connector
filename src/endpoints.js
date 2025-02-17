@@ -1,10 +1,12 @@
 import { uuid4, createUrl } from './utils/index.js'
 
 export class Endpoints {
-  constructor (serverUrl, oidcConfig, callback) {
-    if (!oidcConfig ||
-        !oidcConfig.authorization_endpoint ||
-        !oidcConfig.token_endpoint) {
+  constructor(serverUrl, oidcConfig, callback) {
+    if (
+      !oidcConfig ||
+      !oidcConfig.authorization_endpoint ||
+      !oidcConfig.token_endpoint
+    ) {
       throw new Error('oidcConfig required')
     }
     this.serverUrl = serverUrl
@@ -12,11 +14,11 @@ export class Endpoints {
     this.callback = callback
   }
 
-  _maybeKeycloak () {
+  _maybeKeycloak() {
     return this.token().includes('/realms/')
   }
 
-  async createLoginUrl (options) {
+  async createLoginUrl(options) {
     const state = uuid4()
     const nonce = uuid4()
 
@@ -50,9 +52,7 @@ export class Endpoints {
       callbackState.prompt = prompt
     }
 
-    const baseUrl = doRegister
-      ? this.register()
-      : this.authorize()
+    const baseUrl = doRegister ? this.register() : this.authorize()
 
     const query = {
       ...authorizationParams,
@@ -86,11 +86,11 @@ export class Endpoints {
     return createUrl(baseUrl, query)
   }
 
-  async createRegisterUrl (options) {
+  async createRegisterUrl(options) {
     return this.createLoginUrl({ ...options, action: 'register' })
   }
 
-  async createLogoutUrl (options, { idToken }) {
+  async createLogoutUrl(options, { idToken }) {
     const { redirectUri, postLogoutRedirectUri } = options
     const url = this.logout()
     if (!url) throw new Error('no end_session_endpoint')
@@ -101,7 +101,7 @@ export class Endpoints {
     return createUrl(url, query)
   }
 
-  async createAccountUrl (options) {
+  async createAccountUrl(options) {
     const { clientId, redirectUri } = options
     const url = this.account()
     return createUrl(url, {
@@ -110,37 +110,37 @@ export class Endpoints {
     })
   }
 
-  createTokenUrl (query) {
+  createTokenUrl(query) {
     return createUrl(this.token(), query)
   }
 
-  authorize () {
+  authorize() {
     return this.oidcConfig.authorization_endpoint
   }
 
-  token () {
+  token() {
     return this.oidcConfig.token_endpoint
   }
 
-  logout () {
+  logout() {
     // may be undefined
     const url = this.oidcConfig.end_session_endpoint
     return url
   }
 
-  checkSessionIframe () {
+  checkSessionIframe() {
     // may be undefined
     return this.oidcConfig.check_session_iframe
   }
 
-  userinfo () {
+  userinfo() {
     // may be undefined
     const url = this.oidcConfig.userinfo_endpoint
     if (!url) throw new Error('no userinfo_endpoint')
     return url
   }
 
-  register () {
+  register() {
     let url = this.oidcConfig.userRegistrationEndpoint
     if (!url && this._maybeKeycloak()) {
       url = this.authorize().replace(/\/[^/]+$/, '/registrations')
@@ -149,13 +149,31 @@ export class Endpoints {
     return url
   }
 
-  account () {
+  account() {
     let url = this.oidcConfig.userAccountEndpoint
     if (!url && this._maybeKeycloak()) {
       url = `${this.serverUrl}/account`
     }
     if (!url) throw new Error('no account endpoint')
     return url
+  }
+
+  /**
+   * @see https://www.rfc-editor.org/rfc/rfc9207.html
+   * @param {string} iss
+   * @return {boolean}
+   */
+  verifyIssuer(iss) {
+    const {
+      authorization_response_iss_parameter_supported: issParamSupported,
+      issuer
+    } = this.oidcConfig
+
+    if (!issParamSupported) {
+      return true
+    }
+
+    return issuer === iss
   }
 }
 

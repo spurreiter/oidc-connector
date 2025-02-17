@@ -6,7 +6,8 @@ import path from 'path'
 import { fileURLToPath } from 'url'
 import { createServer as createViteServer } from 'vite'
 
-const isDevMode = process.env.npm_lifecycle_event === 'dev' || process.env.MODE === 'dev'
+const isDevMode =
+  process.env.npm_lifecycle_event === 'dev' || process.env.MODE === 'dev'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -15,7 +16,7 @@ const viewSilentLoginCheck = `<html><body><script>
 </script></body></html>
 `
 
-async function setup () {
+async function setup() {
   const app = express()
 
   app.get('/favicon.ico', (req, res) => {
@@ -53,5 +54,5 @@ const main = async () => {
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  main().catch(err => console.error(err))
+  main().catch((err) => console.error(err))
 }

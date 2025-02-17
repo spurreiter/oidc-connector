@@ -3,16 +3,16 @@ import { NONE } from '../constants.js'
 const MESSAGE = 'message'
 
 class CreateIframe {
-  constructor (opts) {
+  constructor(opts) {
     this._opts = opts
     this._iframe = null
     this._handleMsg = undefined
   }
 
-  async create (origin, onLoad, nextOrigin) {
+  async create(origin, onLoad, nextOrigin) {
     this.origin = origin
     const { src, title } = this._opts
-    const iframe = this._iframe = document.createElement('iframe')
+    const iframe = (this._iframe = document.createElement('iframe'))
     if (onLoad) {
       iframe.addEventListener('load', () => {
         this.origin = nextOrigin || origin
@@ -25,10 +25,12 @@ class CreateIframe {
     document.body.appendChild(iframe)
   }
 
-  addListener (handleMessage) {
+  addListener(handleMessage) {
     this._handleMsg = (ev) => {
-      if ((ev.origin !== this.origin) ||
-        (this._iframe && this._iframe.contentWindow !== ev.source)) {
+      if (
+        ev.origin !== this.origin ||
+        (this._iframe && this._iframe.contentWindow !== ev.source)
+      ) {
         return
       }
       handleMessage(ev)
@@ -36,15 +38,15 @@ class CreateIframe {
     window.addEventListener(MESSAGE, this._handleMsg)
   }
 
-  postMessage (msg) {
+  postMessage(msg) {
     if (!this._iframe || !this._iframe.contentWindow) return
     this._iframe.contentWindow.postMessage(msg, this.origin)
   }
 
-  removeListener () {
+  removeListener() {
     if (this._handleMsg) window.removeEventListener(MESSAGE, this._handleMsg)
     if (this._iframe) document.body.removeChild(this._iframe)
   }
 }
 
-export const createIframe = opts => new CreateIframe(opts)
+export const createIframe = (opts) => new CreateIframe(opts)

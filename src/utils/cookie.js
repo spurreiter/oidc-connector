@@ -1,8 +1,8 @@
-export function min2ms (minutes) {
+export function min2ms(minutes) {
   return minutes * 60000
 }
 
-export function getCookie (key) {
+export function getCookie(key) {
   const name = key + '='
   const ca = document.cookie.split(';')
   for (let i = 0; i < ca.length; i++) {
@@ -14,14 +14,13 @@ export function getCookie (key) {
   return null
 }
 
-export function getCookies () {
+export function getCookies() {
   const obj = {}
   const ca = document.cookie.split(';')
   for (let i = 0; i < ca.length; i++) {
     const c = ca[i].trimStart()
     const m = /^([^=]+)=(.*)$/.exec(c)
     if (m) {
-      // eslint-disable-next-line no-unused-vars
       const [_, key, value] = m
       obj[key] = decodeURIComponent(value)
     }
@@ -29,13 +28,13 @@ export function getCookies () {
   return obj
 }
 
-export function cookieExpiration (minutes = 15) {
+export function cookieExpiration(minutes = 15) {
   const exp = new Date()
   exp.setTime(exp.getTime() + min2ms(minutes))
   return exp
 }
 
-export function setCookie (key, value, minutes) {
+export function setCookie(key, value, minutes) {
   const expirationDate = cookieExpiration(minutes)
   const cookie = `${key}=${encodeURIComponent(value)}; expires=${expirationDate.toUTCString()}; `
   document.cookie = cookie

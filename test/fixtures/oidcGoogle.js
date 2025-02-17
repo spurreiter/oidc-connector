@@ -16,17 +16,9 @@ export const wellKnownOidcGoogle = {
     'code token id_token',
     'none'
   ],
-  subject_types_supported: [
-    'public'
-  ],
-  id_token_signing_alg_values_supported: [
-    'RS256'
-  ],
-  scopes_supported: [
-    'openid',
-    'email',
-    'profile'
-  ],
+  subject_types_supported: ['public'],
+  id_token_signing_alg_values_supported: ['RS256'],
+  scopes_supported: ['openid', 'email', 'profile'],
   token_endpoint_auth_methods_supported: [
     'client_secret_post',
     'client_secret_basic'
@@ -45,10 +37,7 @@ export const wellKnownOidcGoogle = {
     'picture',
     'sub'
   ],
-  code_challenge_methods_supported: [
-    'plain',
-    'S256'
-  ],
+  code_challenge_methods_supported: ['plain', 'S256'],
   grant_types_supported: [
     'authorization_code',
     'refresh_token',

@@ -10,6 +10,7 @@ import {
   HYBRID,
   // params
   CODE,
+  ISSUER,
   STATE,
   SESSION_STATE,
   RESPONSE_MODE,
@@ -26,13 +27,23 @@ import {
 } from '../constants.js'
 
 const PARAMS = [
-  CODE, ACCESS_TOKEN, TOKEN_TYPE, ID_TOKEN, STATE, SESSION_STATE,
-  EXPIRES_IN, KC_ACTION_STATUS, RESPONSE_MODE,
-  ERROR, ERROR_DESCRIPTION, ERROR_URI
+  CODE,
+  ACCESS_TOKEN,
+  TOKEN_TYPE,
+  ID_TOKEN,
+  ISSUER,
+  STATE,
+  SESSION_STATE,
+  EXPIRES_IN,
+  KC_ACTION_STATUS,
+  RESPONSE_MODE,
+  ERROR,
+  ERROR_DESCRIPTION,
+  ERROR_URI
 ]
 
 export class Callback {
-  constructor (options) {
+  constructor(options) {
     const { flow, responseMode, storage, log } = options || {}
     const storageType = storage === S_MEMORY ? S_COOKIE : storage
     this._flow = flow || STANDARD
@@ -41,11 +52,11 @@ export class Callback {
     this.log = log
   }
 
-  store (state) {
+  store(state) {
     this._store.add(state)
   }
 
-  parse (url) {
+  parse(url) {
     const oauth = this._parseUrl(url)
     if (!oauth) {
       return
@@ -66,20 +77,24 @@ export class Callback {
     return oauth
   }
 
-  _parseUrl (url) {
+  _parseUrl(url) {
     const supportedParams = PARAMS
 
     let oauth = {}
     const uri = new URL(url)
 
-    const reduce = (search) => supportedParams.reduce((_oauth, param) => {
-      const val = search.get(param)
-      if (val) {
-        search.delete(param)
-        _oauth[param] = val
-      }
-      return _oauth
-    }, { newUrl: '' })
+    const reduce = (search) =>
+      supportedParams.reduce(
+        (_oauth, param) => {
+          const val = search.get(param)
+          if (val) {
+            search.delete(param)
+            _oauth[param] = val
+          }
+          return _oauth
+        },
+        { newUrl: '' }
+      )
 
     if (this._responseMode === QUERY) {
       oauth = reduce(uri.searchParams)
@@ -92,9 +107,15 @@ export class Callback {
     }
 
     if (oauth && oauth.state) {
-      if ((this._flow === STANDARD || this._flow === HYBRID) && (oauth.code || oauth.error)) {
+      if (
+        (this._flow === STANDARD || this._flow === HYBRID) &&
+        (oauth.code || oauth.error)
+      ) {
         return oauth
-      } else if (this._flow === IMPLICIT && (oauth.access_token || oauth.error)) {
+      } else if (
+        this._flow === IMPLICIT &&
+        (oauth.access_token || oauth.error)
+      ) {
         return oauth
       }
     }

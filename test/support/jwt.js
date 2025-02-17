@@ -59,7 +59,7 @@ const parse = (buffer) => JSON.parse(buffer || 'null')
  * @param {string} token
  * @returns {JwtDecoded}
  */
-export function jwtDecode (token) {
+export function jwtDecode(token) {
   const parts64 = String(token || '').split('.')
   const headerPayload64 = [parts64[0], parts64[1]].join('.')
   const parts = parts64.map((part) => (part ? toBuffer(part) : undefined))
@@ -77,7 +77,7 @@ const stringify = (obj) => JSON.stringify(obj)
  * @param {{expires: number, privateKey: crypto.KeyObject}} opts
  * @returns {string} token
  */
-export function jwtSign (header, payload, opts) {
+export function jwtSign(header, payload, opts) {
   const { expires = MINUTE * 5, privateKey } = opts || {}
   const { alg } = header
   const algorithm = algMap[alg]
@@ -100,7 +100,9 @@ export function jwtSign (header, payload, opts) {
     throw new TypeError('missing key')
   }
   const keyObject =
-      privateKey instanceof crypto.KeyObject ? privateKey : crypto.createPrivateKey(privateKey)
+    privateKey instanceof crypto.KeyObject
+      ? privateKey
+      : crypto.createPrivateKey(privateKey)
 
   if (!keyObject || keyObject.asymmetricKeyType !== 'rsa') {
     throw new TypeError('Invalid key; asymmetricKeyType must be rsa')
@@ -120,7 +122,7 @@ export function jwtSign (header, payload, opts) {
  * @param {JwtVerifyOptions} options
  * @returns {{header: object, payload: object}|null}
  */
-export function jwtVerify (token, options) {
+export function jwtVerify(token, options) {
   const decoded = jwtDecode(token)
   const isValid = verifySignature(decoded, options)
   if (!isValid) {
@@ -135,7 +137,7 @@ export function jwtVerify (token, options) {
  * @param {JwtVerifyOptions} options
  * @returns {{header: object, payload: object}|null}
  */
-export function verifySignature (decoded, options) {
+export function verifySignature(decoded, options) {
   const { header, payload, headerPayload64, parts } = decoded
   const { audiences, publicKey } = options
   const { alg } = header || {}
@@ -156,9 +158,10 @@ export function verifySignature (decoded, options) {
   if (!publicKey) {
     throw new Error('missing publicKey')
   }
-  const keyObject = publicKey instanceof crypto.KeyObject
-    ? publicKey
-    : crypto.createPublicKey(publicKey)
+  const keyObject =
+    publicKey instanceof crypto.KeyObject
+      ? publicKey
+      : crypto.createPublicKey(publicKey)
   const isOk = crypto.verify(
     algorithm,
     Buffer.from(headerPayload64),

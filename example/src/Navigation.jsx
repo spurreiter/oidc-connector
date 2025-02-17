@@ -4,7 +4,7 @@ import { useContext } from 'preact/hooks'
 import { OidcContext } from './OidcConnector.jsx'
 import style from './navigation.module.css'
 
-const classDisabled = (disabled) => disabled ? style.disabled : ''
+const classDisabled = (disabled) => (disabled ? style.disabled : '')
 
 export const Navigation = ({ home = '/', dispatch }) => {
   const { isAuthenticated, client, error } = useContext(OidcContext)
@@ -18,20 +18,20 @@ export const Navigation = ({ home = '/', dispatch }) => {
       case 'userinfo': {
         client
           .userinfo()
-          .then(info => dispatch(info))
-          .catch(err => dispatch(err))
+          .then((info) => dispatch(info))
+          .catch((err) => dispatch(err))
         break
       }
       case 'well-known': {
         const opts = client.options
         const url = `${opts.url}${opts.realm ? `/realms/${opts.realm}` : ''}/.well-known/openid-configuration`
         fetch(url)
-          .then(res => {
+          .then((res) => {
             if (res.status !== 200) throw new Error(res)
             return res.json()
           })
-          .then(body => dispatch(body))
-          .catch(err => {
+          .then((body) => dispatch(body))
+          .catch((err) => {
             window.open(url, '_blank')
             dispatch(err)
           })
@@ -46,26 +46,72 @@ export const Navigation = ({ home = '/', dispatch }) => {
         break
       }
       default: {
-        client[action]()
-          .catch(err => dispatch(err))
+        client[action]().catch((err) => dispatch(err))
         break
       }
     }
   }
 
-  if (error) { dispatch(error) }
+  if (error) {
+    dispatch(error)
+  }
 
   return (
     <nav className={style.navigation}>
       <a href={home}>home</a>
-      <a href='#' className={classDisabled(isAuthenticated)} onClick={handleNav('login')}>login</a>
-      <a href='#' className={classDisabled(isAuthenticated)} onClick={handleNav('silentLogin')}>silentlogin</a>
-      <a href='#' className={classDisabled(!isAuthenticated)} onClick={handleNav('clear-storage')} title="Clear tokens from Storage">clear-tokens</a>
-      <a href='#' className={classDisabled(!isAuthenticated)} onClick={handleNav('logout')}>logout</a>
-      <a href='#' className={classDisabled(!isAuthenticated)} onClick={handleNav('register')}>register</a>
-      <a href='#' className={classDisabled(!isAuthenticated)} onClick={handleNav('account')}>account</a>
-      <a href='#' className={classDisabled(!isAuthenticated)} onClick={handleNav('userinfo')}>userinfo</a>
-      <a href='#' onClick={handleNav('well-known')}>well-known</a>
+      <a
+        href="#"
+        className={classDisabled(isAuthenticated)}
+        onClick={handleNav('login')}
+      >
+        login
+      </a>
+      <a
+        href="#"
+        className={classDisabled(isAuthenticated)}
+        onClick={handleNav('silentLogin')}
+      >
+        silentlogin
+      </a>
+      <a
+        href="#"
+        className={classDisabled(!isAuthenticated)}
+        onClick={handleNav('clear-storage')}
+        title="Clear tokens from Storage"
+      >
+        clear-tokens
+      </a>
+      <a
+        href="#"
+        className={classDisabled(!isAuthenticated)}
+        onClick={handleNav('logout')}
+      >
+        logout
+      </a>
+      <a
+        href="#"
+        className={classDisabled(!isAuthenticated)}
+        onClick={handleNav('register')}
+      >
+        register
+      </a>
+      <a
+        href="#"
+        className={classDisabled(!isAuthenticated)}
+        onClick={handleNav('account')}
+      >
+        account
+      </a>
+      <a
+        href="#"
+        className={classDisabled(!isAuthenticated)}
+        onClick={handleNav('userinfo')}
+      >
+        userinfo
+      </a>
+      <a href="#" onClick={handleNav('well-known')}>
+        well-known
+      </a>
     </nav>
   )
 }

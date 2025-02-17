@@ -1,7 +1,7 @@
 /** @typedef {import('../client').eventName} eventName */
 
 export class EventEmitter {
-  constructor () {
+  constructor() {
     this._events = {}
   }
 
@@ -10,7 +10,7 @@ export class EventEmitter {
    * @param {eventName} eventName
    * @returns {Set} Set of listeners
    */
-  _getMap (eventName) {
+  _getMap(eventName) {
     if (!this._events[eventName]) this._events[eventName] = new Set()
     return this._events[eventName]
   }
@@ -21,7 +21,7 @@ export class EventEmitter {
    * @param {Function} listener
    * @returns {this}
    */
-  on (eventName, listener) {
+  on(eventName, listener) {
     this._getMap(eventName).add(listener)
     return this
   }
@@ -32,7 +32,7 @@ export class EventEmitter {
    * @param {Function} listener
    * @returns {this}
    */
-  off (eventName, listener) {
+  off(eventName, listener) {
     this._getMap(eventName).delete(listener)
     return this
   }
@@ -42,7 +42,7 @@ export class EventEmitter {
    * @param {eventName} eventName
    * @param  {...any} args
    */
-  emit (eventName, ...args) {
+  emit(eventName, ...args) {
     for (const listener of this._getMap(eventName)) {
       listener(...args)
     }

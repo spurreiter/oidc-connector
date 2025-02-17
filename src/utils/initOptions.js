@@ -20,19 +20,20 @@ import {
   S_MEMORY
 } from '../constants.js'
 
-const set = (val, def) => Array.isArray(def)
-  ? def.includes(val)
-    ? val
-    : def[0]
-  : val !== undefined
-    ? typeof def === 'boolean'
-      ? !!val
-      : val
-    : def
+const set = (val, def) =>
+  Array.isArray(def)
+    ? def.includes(val)
+      ? val
+      : def[0]
+    : val !== undefined
+      ? typeof def === 'boolean'
+        ? !!val
+        : val
+      : def
 
-const number = val => isNaN(val) ? undefined : val
+const number = (val) => (isNaN(val) ? undefined : val)
 
-const func = val => typeof val === 'function' ? val : undefined
+const func = (val) => (typeof val === 'function' ? val : undefined)
 
 /**
  * @param {{
@@ -43,12 +44,15 @@ const func = val => typeof val === 'function' ? val : undefined
  */
 const setResponseType = ({ flow = '', responseType = '' } = {}) => {
   const allowed = [NONE, CODE, TOKEN, ID_TOKEN]
-  const types = responseType.split(' ').reduce((types, type) => {
-    if (allowed.indexOf(type) !== -1) {
-      types.push(type)
-    }
-    return types
-  }, flow === IMPLICIT ? [] : [CODE])
+  const types = responseType.split(' ').reduce(
+    (types, type) => {
+      if (allowed.indexOf(type) !== -1) {
+        types.push(type)
+      }
+      return types
+    },
+    flow === IMPLICIT ? [] : [CODE]
+  )
   // @ts-expect-error
   return [...new Set(types)].join(' ')
 }
@@ -65,11 +69,14 @@ const setResponseType = ({ flow = '', responseType = '' } = {}) => {
  * @param {Options} options
  * @returns {Options & OptionsExt}
  */
-export function initOptions (options) {
+export function initOptions(options) {
   const _opts = options || {}
 
   const log = {
-    info: set(func(get(_opts, 'log.info', get(_opts, 'log.log'))), function () {}),
+    info: set(
+      func(get(_opts, 'log.info', get(_opts, 'log.log'))),
+      function () {}
+    ),
     error: set(func(get(_opts, 'log.error')), function () {})
   }
 
@@ -95,11 +102,7 @@ export function initOptions (options) {
   // sanitize scope
   const scope_ = _opts.scope
   const scope = (
-    !scope_
-      ? []
-      : typeof scope_ === 'string'
-        ? scope_.split(' ')
-        : scope_
+    !scope_ ? [] : typeof scope_ === 'string' ? scope_.split(' ') : scope_
   ).filter(Boolean)
   if (!scope.includes(OPENID) && !_opts.noOpenidInScope) {
     scope.unshift(OPENID)
@@ -116,7 +119,7 @@ export function initOptions (options) {
   if (opts.pkce && opts.pkceMethod) {
     try {
       opts.pkce(opts.pkceMethod)
-    } catch (e) {
+    } catch (_err) {
       opts.log.error('pkceMethod %s not supported', opts.pkceMethod)
       opts.pkceMethod = undefined
     }

@@ -1,12 +1,19 @@
 export const wellKnownOidcKeycloak = {
   issuer: 'http://localhost:8080/auth/realms/my',
-  authorization_endpoint: 'http://localhost:8080/auth/realms/my/protocol/openid-connect/auth',
-  token_endpoint: 'http://localhost:8080/auth/realms/my/protocol/openid-connect/token',
-  introspection_endpoint: 'http://localhost:8080/auth/realms/my/protocol/openid-connect/token/introspect',
-  userinfo_endpoint: 'http://localhost:8080/auth/realms/my/protocol/openid-connect/userinfo',
-  end_session_endpoint: 'http://localhost:8080/auth/realms/my/protocol/openid-connect/logout',
-  jwks_uri: 'http://localhost:8080/auth/realms/my/protocol/openid-connect/certs',
-  check_session_iframe: 'http://localhost:8080/auth/realms/my/protocol/openid-connect/login-status-iframe.html',
+  authorization_endpoint:
+    'http://localhost:8080/auth/realms/my/protocol/openid-connect/auth',
+  token_endpoint:
+    'http://localhost:8080/auth/realms/my/protocol/openid-connect/token',
+  introspection_endpoint:
+    'http://localhost:8080/auth/realms/my/protocol/openid-connect/token/introspect',
+  userinfo_endpoint:
+    'http://localhost:8080/auth/realms/my/protocol/openid-connect/userinfo',
+  end_session_endpoint:
+    'http://localhost:8080/auth/realms/my/protocol/openid-connect/logout',
+  jwks_uri:
+    'http://localhost:8080/auth/realms/my/protocol/openid-connect/certs',
+  check_session_iframe:
+    'http://localhost:8080/auth/realms/my/protocol/openid-connect/login-status-iframe.html',
   grant_types_supported: [
     'authorization_code',
     'implicit',
@@ -24,10 +31,7 @@ export const wellKnownOidcKeycloak = {
     'code token',
     'code id_token token'
   ],
-  subject_types_supported: [
-    'public',
-    'pairwise'
-  ],
+  subject_types_supported: ['public', 'pairwise'],
   id_token_signing_alg_values_supported: [
     'PS384',
     'ES384',
@@ -42,10 +46,7 @@ export const wellKnownOidcKeycloak = {
     'PS512',
     'RS512'
   ],
-  id_token_encryption_alg_values_supported: [
-    'RSA-OAEP',
-    'RSA1_5'
-  ],
+  id_token_encryption_alg_values_supported: ['RSA-OAEP', 'RSA1_5'],
   id_token_encryption_enc_values_supported: [
     'A256GCM',
     'A192GCM',
@@ -84,12 +85,9 @@ export const wellKnownOidcKeycloak = {
     'RS512',
     'none'
   ],
-  response_modes_supported: [
-    'query',
-    'fragment',
-    'form_post'
-  ],
-  registration_endpoint: 'http://localhost:8080/auth/realms/my/clients-registrations/openid-connect',
+  response_modes_supported: ['query', 'fragment', 'form_post'],
+  registration_endpoint:
+    'http://localhost:8080/auth/realms/my/clients-registrations/openid-connect',
   token_endpoint_auth_methods_supported: [
     'private_key_jwt',
     'client_secret_basic',
@@ -123,9 +121,7 @@ export const wellKnownOidcKeycloak = {
     'email',
     'acr'
   ],
-  claim_types_supported: [
-    'normal'
-  ],
+  claim_types_supported: ['normal'],
   claims_parameter_supported: false,
   scopes_supported: [
     'openid',
@@ -140,9 +136,7 @@ export const wellKnownOidcKeycloak = {
   ],
   request_parameter_supported: true,
   request_uri_parameter_supported: true,
-  code_challenge_methods_supported: [
-    'plain',
-    'S256'
-  ],
-  tls_client_certificate_bound_access_tokens: true
+  code_challenge_methods_supported: ['plain', 'S256'],
+  tls_client_certificate_bound_access_tokens: true,
+  authorization_response_iss_parameter_supported: true
 }

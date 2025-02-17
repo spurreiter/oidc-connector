@@ -4,7 +4,7 @@
  * creates a promise
  * @returns {Promised}
  */
-export function createPromise () {
+export function createPromise() {
   let _resolve
   let _reject
   /** @type {Promised} */
@@ -20,7 +20,7 @@ export function createPromise () {
   return promise
 }
 
-export function debouncePromises () {
+export function debouncePromises() {
   const queue = []
 
   const push = (promise) => {
