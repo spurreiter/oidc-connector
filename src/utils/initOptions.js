@@ -88,7 +88,8 @@ export function initOptions(options) {
     storage: set(_opts.storage, [S_SESSION, S_LOCAL, S_COOKIE, S_MEMORY]),
     minValidity: set(number(_opts.minValidity), 15),
     expiryInterval: set(number(_opts.expiryInterval), 5),
-    responseMode: set(_opts.responseMode, [FRAGMENT, QUERY]),
+    // set 'none' if response_mode shall not be transferred, e.g. for Oracle IDCS
+    responseMode: set(_opts.responseMode, [FRAGMENT, QUERY, NONE]),
     responseType: setResponseType(_opts),
     flow: set(_opts.flow, [STANDARD, IMPLICIT, HYBRID]),
     pkce: set(func(_opts.pkce), pkce),

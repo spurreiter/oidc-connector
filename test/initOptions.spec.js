@@ -37,6 +37,31 @@ describe('utils/initOptions', function () {
     })
   })
 
+  it('shall unset responseMode', function () {
+    // eslint-disable-next-line no-unused-vars
+    const { log: _log, pkce, ...opts } = initOptions({ responseMode: 'none' })
+    log(opts)
+
+    testLog(_log)
+
+    assert.deepStrictEqual(opts, {
+      expiryInterval: 5,
+      flow: 'standard',
+      forceLogin: false,
+      forceLogout: true,
+      minValidity: 15,
+      prompt: undefined,
+      responseMode: 'none',
+      responseType: 'code',
+      scope: 'openid',
+      silentLoginWait: 5,
+      statusIframeInterval: 5,
+      storage: 'session',
+      useNonce: true,
+      useStatusIframe: true
+    })
+  })
+
   it('shall fallback to default options', function () {
     const {
       log: _log,

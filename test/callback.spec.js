@@ -6,6 +6,7 @@ import {
   // responseMode
   FRAGMENT,
   QUERY,
+  NONE,
   // flow
   STANDARD,
   IMPLICIT,
@@ -37,6 +38,19 @@ describe('utils/Callback', function () {
         state: 'teststate',
         session_state: 'mysessionstate',
         response_mode: 'query',
+        newUrl: 'http://example.org/?other=testother#other=hash'
+      })
+    })
+
+    it('response mode "none"', function () {
+      const cb = new Callback({ log, flow: STANDARD, responseMode: NONE })
+      const url =
+        'http://example.org?code=mycode&session_state=mysessionstate&state=teststate&other=testother#other=hash'
+      const r = cb.parse(url)
+      assert.deepStrictEqual(r, {
+        code: 'mycode',
+        state: 'teststate',
+        session_state: 'mysessionstate',
         newUrl: 'http://example.org/?other=testother#other=hash'
       })
     })

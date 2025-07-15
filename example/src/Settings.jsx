@@ -51,7 +51,7 @@ const formMeta = {
   },
   minValidity: { type: 'text' },
   expiryInterval: { type: 'text' },
-  responseMode: { options: ['fragment', 'query'] },
+  responseMode: { options: ['fragment', 'query', 'none'] },
   responseType: {
     options: [
       'code',
