@@ -1,3 +1,9 @@
+# 1.5.1 (2025-07-15)
+
+- fix: types (#09cf5dc)
+- fix(#6): responseMode 'none' (#d0d4bad)
+- chore: bump devDependencies (#2d33d0c)
+
 # 1.5.0 (2025-02-17)
 
 - feat: verify issuer according to rfc9207 (#c561f4e)
