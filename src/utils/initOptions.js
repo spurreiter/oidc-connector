@@ -38,9 +38,9 @@ const func = (val) => (typeof val === 'function' ? val : undefined)
 /**
  * @param {{
  *  flow?: string
- *  responseType?: import('../client').ResponseType|''
+ *  responseType?: import('../client-types.js').ResponseType|''
  * }} param0
- * @returns {import('../client').ResponseType}
+ * @returns {import('../client-types.js').ResponseType}
  */
 const setResponseType = ({ flow = '', responseType = '' } = {}) => {
   const allowed = [NONE, CODE, TOKEN, ID_TOKEN]
@@ -58,8 +58,8 @@ const setResponseType = ({ flow = '', responseType = '' } = {}) => {
 }
 
 /**
- * @typedef {import('../client').Options} Options
- * @typedef {import('../client').Logger} Logger
+ * @typedef {import('../client-types.js').Options} Options
+ * @typedef {import('../client-types.js').Logger} Logger
  *
  * @typedef {object} OptionsExt
  * @property {Logger} log

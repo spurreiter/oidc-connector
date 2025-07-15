@@ -57,7 +57,7 @@
     "lint": "eslint",
     "prepublishOnly": "npm run all",
     "test": "mocha",
-    "ts:types": "rimraf types; tsc && cp src/*.d.ts types"
+    "ts:types": "rimraf types; tsc"
   },
   "mocha": {
     "exit": true

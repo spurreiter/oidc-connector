@@ -1,6 +1,6 @@
-import { EventEmitter } from "./utils";
+import { EventEmitter } from "./utils/index.js";
 
-export type ResponseMode = 'query'|'fragment';
+export type ResponseMode = 'query'|'fragment'|'none';
 export type ResponseType = 'code'|
                             'id_token token'|
                             'code id_token token'|
@@ -10,7 +10,6 @@ export type ResponseType = 'code'|
                             'id_token'|
                             'token';
 export type PkceMethod = 'S256';
-
 
 export type Url = string;
 
@@ -111,6 +110,8 @@ export interface Options {
    *                   redirect to JavaScript application with OpenID Connect
    *                   parameters added in URL fragment. This is generally safer
    *                   and recommended over 'query'.
+   *                   Set 'none' if response_mode query parameter shall not be
+   *                   part of the response.
    */
   responseMode?: ResponseMode;
   /**
@@ -292,7 +293,7 @@ export interface Tokens {
   claim: (claimName: string) => string | number | undefined;
 }
 
-export class Adapter {
+export declare class Adapter {
   constructor (opts?: object);
   initialize(client: Client): any;
   /**
@@ -331,7 +332,7 @@ export class Adapter {
 
 export type eventName = 'token'|'error'|'logout'|'action'
 
-export class Client extends EventEmitter {
+export declare class Client extends EventEmitter {
   constructor (options: Options);
   /**
    * initialize the client. Needs to be called on page load.

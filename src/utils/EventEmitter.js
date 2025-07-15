@@ -1,4 +1,4 @@
-/** @typedef {import('../client').eventName} eventName */
+/** @typedef {import('../client-types.js').eventName} eventName */
 
 export class EventEmitter {
   constructor() {

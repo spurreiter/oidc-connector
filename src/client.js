@@ -33,8 +33,8 @@ import {
 
 import { IMPLICIT, STANDARD, TYPE_URLENCODED } from './constants.js'
 
-/** @typedef {import('./client').Options} Options */
-/** @typedef {import('./types').OidcError} OidcError */
+/** @typedef {import('./client-types.js').Options} Options */
+/** @typedef {import('./types.js').OidcError} OidcError */
 
 export class Client extends EventEmitter {
   /**

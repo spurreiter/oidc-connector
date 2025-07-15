@@ -1,6 +1,6 @@
 /**
- * @typedef {import('../client').Options} Options
- * @typedef {import('../client').Logger} Logger
+ * @typedef {import('../client-types.js').Options} Options
+ * @typedef {import('../client-types.js').Logger} Logger
  *
  * @typedef {object} OptionsExt
  * @property {Logger} log
@@ -10,8 +10,8 @@
  * @returns {Options & OptionsExt}
  */
 export function initOptions(options: Options): Options & OptionsExt;
-export type Options = import("../client").Options;
-export type Logger = import("../client").Logger;
+export type Options = import("../client-types.js").Options;
+export type Logger = import("../client-types.js").Logger;
 export type OptionsExt = {
     log: Logger;
 };
