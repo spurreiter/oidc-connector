@@ -59,7 +59,6 @@ export class Endpoints {
       client_id: clientId,
       redirect_uri: redirectUri,
       state,
-      response_mode: responseMode,
       response_type: responseType,
       scope,
       prompt,
@@ -67,6 +66,9 @@ export class Endpoints {
       login_hint: loginHint,
       kc_idp_hint: idpHint,
       ui_locales: locale
+    }
+    if (responseMode !== 'none') {
+      query.response_mode = responseMode
     }
     if (useNonce) {
       query.nonce = nonce
