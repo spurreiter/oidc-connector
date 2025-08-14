@@ -3,7 +3,6 @@ import { CallbackStorage } from './storage.js'
 import {
   // responseMode
   FRAGMENT,
-  NONE,
   // flow
   STANDARD,
   IMPLICIT,
@@ -96,10 +95,7 @@ export class Callback {
         { newUrl: '' }
       )
 
-    if (this._responseMode === FRAGMENT || this._responseMode === NONE) {
-      if (this._responseMode === NONE) {
-        uri.searchParams.delete(RESPONSE_MODE)
-      }
+    if (this._responseMode === FRAGMENT) {
       const search = new URLSearchParams(uri.hash.substring(1))
       oauth = reduce(search)
       uri.hash = `#${search.toString()}`

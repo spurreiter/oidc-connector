@@ -175,6 +175,52 @@ describe('endpoints', function () {
       })
     })
 
+    it('shall return login url with responseMode = "none"', async function () {
+      const options = {
+        clientId: 'my-client',
+        redirectUri: location.href,
+        responseMode: 'none',
+        responseType: 'code',
+        scope: 'openid email test',
+        useNonce: true,
+        maxAge: 12
+      }
+      const cb = new Callback({ responseMode: options.responseMode })
+      ep.callback = cb
+      const url = await ep.createLoginUrl(options)
+
+      log(url)
+
+      const u = new URL(url)
+      const state = u.searchParams.get('state')
+
+      assert.ok(state, 'shall have state param')
+      const cbState = cb._store.get(state)
+      log(cbState)
+      assert.ok(cbState, 'should get state from callback store')
+
+      assert.strictEqual(u.host, 'localhost:8080')
+      assert.strictEqual(
+        u.pathname,
+        '/auth/realms/my/protocol/openid-connect/auth'
+      )
+
+      const query = searchParams(u)
+      log(query)
+      query.state = query.state && '**'
+      query.nonce = query.nonce && '**'
+
+      assert.deepStrictEqual(query, {
+        client_id: 'my-client',
+        redirect_uri: 'https://example.org/',
+        state: '**',
+        response_type: 'code',
+        scope: 'openid email test',
+        max_age: '12',
+        nonce: '**'
+      })
+    })
+
     it('shall return url with pkce challenge', async function () {
       const options = {
         redirectUri: location.href,

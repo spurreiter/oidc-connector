@@ -45,13 +45,13 @@ describe('utils/Callback', function () {
     it('response mode "none"', function () {
       const cb = new Callback({ log, flow: STANDARD, responseMode: NONE })
       const url =
-        'http://example.org#code=mycode&session_state=mysessionstate&state=teststate&other=testother&other=hash'
+        'http://example.org?code=mycode&session_state=mysessionstate&state=teststate&other=testother#other=hash'
       const r = cb.parse(url)
       assert.deepStrictEqual(r, {
         code: 'mycode',
         state: 'teststate',
         session_state: 'mysessionstate',
-        newUrl: 'http://example.org/#other=testother&other=hash'
+        newUrl: 'http://example.org/?other=testother#other=hash'
       })
     })
 
