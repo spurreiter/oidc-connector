@@ -1,3 +1,9 @@
+# 1.6.0 (2025-10-18)
+
+- chore: bump dependencies (#bdeedd2)
+- fix: remove responseMode none in callback (#69ac870)
+- fix: handle responseMode 'none' in endpoints and callback (#ab255a0)
+
 # 1.5.1 (2025-07-15)
 
 - fix: types (#09cf5dc)
